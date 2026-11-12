@@ -67,9 +67,9 @@ class Handler(BaseHTTPRequestHandler):
         self.server.last_seen=time.monotonic()
         if url.path=='/_desktop/github-update':
             try:
-                import urllib.request
-                request=urllib.request.Request('https://raw.githubusercontent.com/taikhoanzaizai-ux/bantin/main/BanTinStudio-QuanTri/VERSION.txt',headers={'User-Agent':'Quan-Ban-Tin','Cache-Control':'no-cache'})
-                with urllib.request.urlopen(request,timeout=8) as response:
+                from urllib.request import Request, urlopen
+                request=Request('https://raw.githubusercontent.com/taikhoanzaizai-ux/bantin/main/BanTinStudio-QuanTri/VERSION.txt',headers={'User-Agent':'Quan-Ban-Tin','Cache-Control':'no-cache'})
+                with urlopen(request,timeout=8) as response:
                     latest=response.read(512).decode('utf-8-sig').strip()
                 current=(ROOT/'VERSION.txt').read_text(encoding='utf-8-sig').strip()
                 def version(value):
