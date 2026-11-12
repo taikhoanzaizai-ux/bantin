@@ -2,9 +2,9 @@
   const seen = new Set();
   let pending;
   const button = document.createElement('button');
-  button.hidden = true;
+  button.disabled = true;
   button.type = 'button';
-  button.textContent = 'Mở kịch bản từ Tin Nóng';
+  button.textContent = 'Tin Nóng: Đang chờ kịch bản';
   button.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:1000;padding:12px 16px;border:0;border-radius:8px;background:#17654f;color:white;cursor:pointer';
   document.body.append(button);
   button.onclick = () => {
@@ -18,7 +18,8 @@
     input.dispatchEvent(new Event('change', {bubbles:true}));
     seen.add(id);
     pending = undefined;
-    button.hidden = true;
+    button.disabled = true;
+    button.textContent = 'Tin Nóng: Đang chờ kịch bản';
   };
   async function check() {
     try {
@@ -27,7 +28,8 @@
       const entry = await response.json();
       if (!entry?.id || seen.has(entry.id)) return;
       pending = entry;
-      button.hidden = false;
+      button.disabled = false;
+      button.textContent = 'Mở kịch bản từ Tin Nóng';
     } catch {} finally {
       setTimeout(check, 2500);
     }
