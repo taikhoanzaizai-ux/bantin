@@ -224,7 +224,7 @@ class Handler(BaseHTTPRequestHandler):
                 length=int(self.headers.get('Content-Length','0'))
                 if not 0<length<=4096:raise ValueError('Yêu cầu tìm ảnh không hợp lệ.')
                 body=json.loads(self.rfile.read(length))
-                self.send(200,google_images(body.get('q'),body.get('key')))
+                self.send(200,google_images(body.get('q')))
             except (ArticleError,OSError,ValueError,AttributeError) as error:
                 self.send(502,{'message':str(error)[:300]})
             return

@@ -1,6 +1,13 @@
 """Search Wikimedia Commons and import supported files."""
 import json
-from urllib.parse import urlencode, urlsplit
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import re
+from html.parser import HTMLParser
+from urllib.parse import parse_qs, urlencode, urlsplit
 from article_import import ArticleError, fetch_public
 
 TYPES = {'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp',
@@ -46,27 +53,80 @@ def download_media(url):
         raise ArticleError('Ảnh vượt 15 MB.')
     return body, mime
 
-def google_images(query, key):
+class GoogleImagesParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.results = []
+        self.link = None
+
+    def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if tag == 'a':
+            href = values.get('href') or ''
+            try:
+                parsed = urlsplit(href)
+                params = parse_qs(parsed.query)
+                self.link = params if parsed.path == '/imgres' else None
+            except ValueError:
+                self.link = None
+        if tag != 'img':
+            return
+        candidates = [values.get('data-src'), values.get('src')]
+        thumb = next((u for u in candidates if google_thumbnail(u)), '')
+        params = self.link or {}
+        url = params.get('imgurl', [''])[0]
+        page = params.get('imgrefurl', [''])[0]
+        if not public_web_url(url):
+            url = thumb
+        if not url:
+            return
+        self.results.append({'url':url, 'thumb':thumb, 'page':page if public_web_url(page) else '',
+                             'title':(values.get('alt') or 'Ảnh Google')[:180], 'thumbnail_only':url==thumb,
+                             'license':'', 'mime':'image/*', 'size':0})
+
+    def handle_endtag(self, tag):
+        if tag == 'a':
+            self.link = None
+
+def google_thumbnail(value):
+    if not public_web_url(value):
+        return False
+    parsed = urlsplit(value)
+    return parsed.scheme == 'https' and bool(re.fullmatch(r'encrypted-tbn\d*\.gstatic\.com',parsed.hostname or ''))
+
+def render_google_page(url):
+    roots = (os.environ.get('ProgramFiles(x86)'), os.environ.get('ProgramFiles'), 'C:/Program Files (x86)', 'C:/Program Files')
+    edge = next((Path(root)/'Microsoft/Edge/Application/msedge.exe' for root in roots
+                 if root and (Path(root)/'Microsoft/Edge/Application/msedge.exe').is_file()), None)
+    if edge is None:
+        raise ArticleError('Cần Microsoft Edge để hiển thị kết quả Google trong Quân Bản Tin.')
+    profile = tempfile.mkdtemp(prefix='qbt-google-')
+    try:
+        result = subprocess.run([str(edge),'--headless','--disable-gpu','--no-first-run',
+                                 '--user-data-dir='+profile,'--dump-dom','--virtual-time-budget=5000',url],
+                                stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=25,
+                                creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        if result.returncode or len(result.stdout)>12_000_000:
+            raise ArticleError('Không hiển thị được trang kết quả Google.')
+        return result.stdout
+    except subprocess.TimeoutExpired:
+        raise ArticleError('Google phản hồi quá lâu. Hãy thử lại.') from None
+    finally:
+        shutil.rmtree(profile,ignore_errors=True)
+
+def google_images(query):
     if not isinstance(query,str) or not query.strip() or len(query)>180:
         raise ArticleError('Nhập từ khóa từ 1 đến 180 ký tự.')
-    if not isinstance(key,str) or not key.strip() or len(key)>256 or any(c in key for c in '\r\n'):
-        raise ArticleError('Nhập khóa API Serper để tìm Google Hình ảnh.')
-    body=json.dumps({'q':query.strip(),'gl':'vn','hl':'vi','num':16}).encode()
-    raw,_,_=fetch_public('https://google.serper.dev/images',limit=2_000_000,body=body,
-                         headers={'X-API-KEY':key.strip(),'Content-Type':'application/json'})
-    results=[]
-    seen=set()
-    for item in json.loads(raw).get('images',[])[:16]:
-        url=item.get('imageUrl','')
-        page=item.get('link','')
-        thumb=item.get('thumbnailUrl','')
-        if not public_web_url(url) or not public_web_url(page) or url in seen:
-            continue
-        seen.add(url)
-        results.append({'title':str(item.get('title') or 'Ảnh Google')[:180],'url':url,
-                        'page':page,'thumb':thumb if public_web_url(thumb) else '',
-                        'license':'','mime':'image/*','size':0})
-    return results
+    params = urlencode({'q':query.strip(),'udm':'2','hl':'vi'})
+    raw = render_google_page('https://www.google.com/search?' + params)
+    parser = GoogleImagesParser()
+    parser.feed(raw.decode('utf-8', errors='replace'))
+    unique = {}
+    for item in parser.results:
+        unique.setdefault(item['url'],item)
+    if not unique:
+        raise ArticleError('Không đọc được ảnh từ trang Google. Hãy thử Wikimedia Commons.')
+    return list(unique.values())[:20]
 
 def public_web_url(value):
     if not isinstance(value,str) or len(value)>8192:
