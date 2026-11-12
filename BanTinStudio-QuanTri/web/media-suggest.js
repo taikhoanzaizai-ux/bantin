@@ -4,65 +4,51 @@
     if (label) el.textContent = label;
     return el;
   };
-  const trigger = make('button', 'Tìm tư liệu theo cảnh');
+  const trigger = make('button', 'Tìm ảnh cho bài viết');
   trigger.type = 'button';
   trigger.className = 'button';
   trigger.style.margin = '8px 0';
   const dialog = make('dialog');
   dialog.style.cssText = 'width:min(940px,92vw);max-height:86vh;overflow:auto;padding:22px;border:1px solid #cedbd6;border-radius:14px;background:white;color:#172622';
-  dialog.setAttribute('aria-label','Tìm tư liệu theo cảnh');
-  const title = make('h2','Tìm tư liệu theo cảnh');
+  dialog.setAttribute('aria-label','Tìm ảnh cho bài viết');
+  const title = make('h2','Tìm ảnh cho bài viết');
   const close = make('button','Đóng');
   close.className = 'button';
   close.onclick = () => dialog.close();
-  const scene = make('select');
-  scene.setAttribute('aria-label','Chọn cảnh');
-  const excerpt = make('p');
   const keyword = make('input');
   keyword.type = 'search';
   keyword.maxLength = 180;
   keyword.placeholder = 'Tên người, đội, địa điểm hoặc sự kiện';
   keyword.setAttribute('aria-label','Từ khóa tư liệu');
   keyword.style.cssText = 'flex:1;min-width:160px';
-  const kind = make('select');
-  kind.setAttribute('aria-label','Loại tư liệu');
-  for (const [value,label] of [['image','Ảnh'],['video','Video']]) {
-    const option = make('option',label);
-    option.value = value;
-    kind.append(option);
-  }
   const search = make('button','Tìm trên Wikimedia Commons');
   search.className = 'button primary';
   const tools = make('div');
   tools.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:12px 0';
-  tools.append(keyword,kind,search);
+  const google = make('button','Google Hình ảnh');
+  google.type = 'button';
+  google.className = 'button';
+  google.onclick = () => {
+    const query = keyword.value.trim();
+    if (!query) { status.textContent = 'Nhập từ khóa để tìm ảnh.'; keyword.focus(); return; }
+    window.open('https://www.google.com/search?' + new URLSearchParams({tbm:'isch',q:query}), '_blank','noopener,noreferrer');
+  };
+  tools.append(keyword,search,google);
   const status = make('p');
   status.setAttribute('role','status');
   const results = make('div');
   results.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px';
-  dialog.append(title,close,scene,excerpt,tools,status,results);
+  dialog.append(title,close,tools,status,results);
   document.body.append(dialog);
-  let parts = [], headline = '';
-  function selectScene() {
-    const text = parts[Number(scene.value)] || '';
-    excerpt.textContent = text || 'Bạn có thể nhập từ khóa để tìm trực tiếp.';
-    keyword.value = (text || headline).replace(/[^\p{L}\p{N}\s-]/gu,' ').trim().split(/\s+/).slice(0,7).join(' ');
-  }
-  scene.onchange = selectScene;
   trigger.onclick = () => {
     let draft = {};
     try { draft = JSON.parse(localStorage.getItem('news-draft') || '{}') || {}; } catch {}
-    headline = typeof draft.title === 'string' ? draft.title : '';
-    const script = typeof draft.script === 'string' ? draft.script : '';
-    parts = script.trim().split(/\n+|(?<=[.!?])\s+/).map(text=>text.trim()).filter(Boolean);
-    scene.replaceChildren(...(parts.length ? parts : ['']).map((text,i)=>{
-      const option = make('option', text ? 'Đoạn '+(i+1)+' · '+text.slice(0,55) : 'Tìm theo từ khóa');
-      option.value = String(i);
-      return option;
-    }));
-    selectScene();
+    const headline = typeof draft.title === 'string' ? draft.title.trim() : '';
+    const script = typeof draft.script === 'string' ? draft.script.trim() : '';
+    const firstLine = script.split(/\n|(?<=[.!?])\s+/)[0] || '';
+    keyword.value = (headline || firstLine).slice(0,180);
     results.replaceChildren();
-    status.textContent = 'Kiểm tra chú thích và giấy phép trước khi chèn. Kết quả là tư liệu gợi ý.';
+    status.textContent = 'Dùng từ khóa chung cho cả bài. Với Google Hình ảnh, mở nguồn gốc, tải ảnh phù hợp rồi dùng Chọn ảnh / video.';
     dialog.showModal();
   };
   async function insert(item, button) {
@@ -92,7 +78,7 @@
     results.replaceChildren();
     status.textContent = 'Đang tìm tư liệu…';
     try {
-      const response = await fetch('/_desktop/media-suggest?' + new URLSearchParams({q:keyword.value.trim(),kind:kind.value}));
+      const response = await fetch('/_desktop/media-suggest?' + new URLSearchParams({q:keyword.value.trim(),kind:'image'}));
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.message);
       status.textContent = payload.length ? payload.length+' tư liệu gợi ý. Đối chiếu trang nguồn trước khi dùng.' : 'Chưa thấy kết quả phù hợp. Thử tên riêng hoặc từ khóa ngắn hơn.';
