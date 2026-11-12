@@ -68,9 +68,17 @@ class Handler(BaseHTTPRequestHandler):
         if url.path=='/_desktop/github-update':
             try:
                 from urllib.request import Request, urlopen
-                request=Request('https://raw.githubusercontent.com/taikhoanzaizai-ux/bantin/main/BanTinStudio-QuanTri/VERSION.txt',headers={'User-Agent':'Quan-Ban-Tin','Cache-Control':'no-cache'})
-                with urlopen(request,timeout=8) as response:
-                    latest=response.read(512).decode('utf-8-sig').strip()
+                suffix=f'?ref=main&check={time.time_ns()}'
+                headers={'User-Agent':'Quan-Ban-Tin','Cache-Control':'no-cache'}
+                api='https://api.github.com/repos/taikhoanzaizai-ux/bantin/contents/BanTinStudio-QuanTri/VERSION.txt'
+                raw='https://raw.githubusercontent.com/taikhoanzaizai-ux/bantin/main/BanTinStudio-QuanTri/VERSION.txt'
+                try:
+                    with urlopen(Request(api+suffix,headers={**headers,'Accept':'application/vnd.github.raw+json'}),timeout=8) as response:
+                        latest=response.read(512).decode('utf-8-sig').strip()
+                    if not latest.startswith('Quân Bản Tin Desktop '):raise ValueError('Invalid version response')
+                except (OSError,ValueError):
+                    with urlopen(Request(raw+suffix,headers=headers),timeout=8) as response:
+                        latest=response.read(512).decode('utf-8-sig').strip()
                 current=(ROOT/'VERSION.txt').read_text(encoding='utf-8-sig').strip()
                 def version(value):
                     return tuple(int(part) for part in value.split()[-1].split('.'))

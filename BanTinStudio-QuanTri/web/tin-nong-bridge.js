@@ -20,6 +20,7 @@
     pending = undefined;
     button.disabled = true;
     button.textContent = 'Tin Nóng: Đang chờ kịch bản';
+    button.textContent = 'Tin Nóng: Đang chờ kịch bản';
   };
   async function check() {
     try {
@@ -49,7 +50,7 @@
       if (!info.available) {
         alert('Bạn đang dùng bản mới nhất: ' + info.current);
       } else if (confirm('Có bản mới: ' + info.latest + '. Tải ZIP từ GitHub?')) {
-        window.open('https://github.com/taikhoanzaizai-ux/bantin/archive/refs/heads/main.zip', '_blank', 'noopener');
+        window.location.assign('https://github.com/taikhoanzaizai-ux/bantin/archive/refs/heads/main.zip');
       }
     } catch (error) {
       alert(error.message);
