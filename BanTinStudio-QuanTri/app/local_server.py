@@ -89,8 +89,15 @@ class Handler(BaseHTTPRequestHandler):
         if url.path=='/_desktop/news-rss':
             if not self.server.licensing.check()['ok']:
                 self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
-            from news_rss import latest_news
-            self.send(200,latest_news(q.get('refresh')==['1']));return
+            from news_rss import FEEDS_BY_COUNTRY,TREND_GEOS,fetch_trends,latest_news
+            country=q.get('country',['Việt Nam'])[0]
+            if country not in FEEDS_BY_COUNTRY:
+                self.send(400,{'message':'Quốc gia không hợp lệ.'});return
+            if q.get('trends')==['1']:
+                try:self.send(200,{'trends':fetch_trends(TREND_GEOS[country])})
+                except (OSError,ValueError):self.send(502,{'message':'Không tải được Google Trends.'})
+                return
+            self.send(200,latest_news(country,q.get('refresh')==['1']));return
         if url.path=='/_desktop/tin-nong':
             if not self.server.licensing.check()['ok']:
                 self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return

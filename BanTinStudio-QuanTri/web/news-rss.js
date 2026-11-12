@@ -22,11 +22,65 @@
   refresh.className = 'side-action';
   const tools = make('div');
   tools.style.cssText = 'display:flex;gap:12px;align-items:center;margin:12px 0';
-  tools.append(filter, refresh);
+  const country = make('select');
+  const topic = make('select');
+  for (const [select, label, values] of [
+    [country, 'Quốc gia', ['Việt Nam','Mỹ','Hàn Quốc','Nhật Bản']],
+    [topic, 'Chuyên mục', ['Tất cả','Thời sự','Đời sống','Pháp luật','Thể thao','Giải trí','Tin chung']]
+  ]) {
+    select.setAttribute('aria-label', label);
+    for (const value of values) select.append(make('option', value));
+  }
+  const auto = make('input');
+  auto.type = 'checkbox';
+  auto.checked = true;
+  const autoLabel = make('label');
+  autoLabel.append(auto, ' Tự quét mỗi 15 phút');
+  tools.style.flexWrap = 'wrap';
+  tools.replaceChildren(refresh, autoLabel, country, topic, filter);
+  refresh.textContent = 'Quét ngay';
+  const social = make('div');
+  social.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:8px 0';
+  for (const [label, url, prefix] of [
+    ['Facebook công khai','https://www.google.com/search?tbs=qdr:w&q=','site:facebook.com '],
+    ['YouTube','https://www.youtube.com/results?search_query=',''],
+    ['TikTok','https://www.tiktok.com/search?q=',''],
+    ['TikTok thịnh hành VN','https://ads.tiktok.com/creative/creativeCenter/trends?region=VN',null],
+    ['Theanh28 · Mạng xã hội','https://linktr.ee/theanh28multichannels',null],
+  ]) {
+    const action = make('button', label);
+    action.className = 'side-action';
+    action.onclick = () => window.open(url + (prefix === null ? '' : encodeURIComponent(prefix + (filter.value.trim() || selected?.title || 'tin nóng'))), '_blank', 'noopener');
+    social.append(action);
+  }
+  const trend = make('button', 'Tìm kiếm thịnh hành');
+  trend.className = 'side-action';
+  social.append(trend);
+  let trendMode = false;
+  trend.onclick = () => { trendMode = !trendMode; trend.textContent = trendMode ? 'Về bảng tin' : 'Tìm kiếm thịnh hành'; load(); };
+  const sources = make('select');
+  sources.setAttribute('aria-label','Chọn bài theo nguồn');
+  const original = make('button', 'Mở bài gốc');
+  original.className = 'side-action';
+  original.onclick = () => { if (selected) window.open(selected.url,'_blank','noopener'); };
+  const footer = make('div');
+  footer.style.cssText = 'display:flex;gap:8px;margin-top:10px';
+  sources.style.flex = '1';
+  footer.append(sources, original);
+  let selected;
+  let chosen = [];
+  sources.onchange = () => { selected = chosen[sources.selectedIndex]; };
+  function choose(items) {
+    chosen = items;
+    sources.replaceChildren(...items.map(item => make('option', item.source + ' | ' + item.title)));
+    selected = items[0];
+    original.disabled = !selected;
+  }
+
   const status = make('p');
   status.setAttribute('role', 'status');
   const list = make('div');
-  body.append(heading, tools, status, list);
+  body.append(heading, tools, social, list, footer, status);
   panel.append(body);
   let active = false;
   let articles = [];
@@ -57,34 +111,72 @@
   }
   function render() {
     const query = filter.value.trim().toLocaleLowerCase('vi');
-    const items = articles.filter(row => (row.title + ' ' + row.source).toLocaleLowerCase('vi').includes(query));
-    list.replaceChildren();
-    if (!items.length) list.append(make('p', 'Chưa có bài phù hợp.'));
-    for (const row of items) {
-      const item = make('button');
-      item.type = 'button';
-      item.style.cssText = 'display:block;width:100%;text-align:left;padding:12px 0;border-bottom:1px solid #dce6e2';
-      item.append(make('strong', row.title), make('br'), make('small', row.source + ' · Mở trong Kịch bản'));
-      item.onclick = () => openScript(row.url);
-      list.append(item);
+    const table = make('table');
+    table.style.cssText = 'width:100%;border-collapse:collapse;text-align:left';
+    const head = make('thead');
+    const labels = make('tr');
+    for (const label of (trendMode ? ['Lượt tìm', 'Từ khóa', 'Bài liên quan'] : ['Điểm','Giờ đăng','Số báo','Tiêu đề'])) {
+      const cell = make('th',label);
+      cell.style.padding = '8px';
+      labels.append(cell);
     }
+    head.append(labels);
+    table.append(head);
+    const rows = make('tbody');
+    const format = new Intl.DateTimeFormat('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});
+    const entries = trendMode ? articles.map(([,traffic,keyword,related]) => ({
+      values:[traffic || '—',keyword], title:related[0]?.[0] || keyword,
+      items:related.map(([title,url]) => ({title,url,source:'Google Trends'}))
+    })) : articles.flatMap(group => {
+      const match = group.items.find(item => (topic.value === 'Tất cả' || item.topic === topic.value) &&
+        (item.title+' '+item.source).toLocaleLowerCase('vi').includes(query));
+      return match ? [{values:[group.score,format.format(match.stamp*1000),group.sources],title:match.title,
+        items:[match,...group.items.filter(item=>item!==match)]}] : [];
+    });
+    choose(entries[0]?.items || []);
+    for (const entry of entries) {
+      const row = make('tr');
+      row.style.background = rows.children.length % 2 ? '#eaf1fb' : '#f8fafc';
+      for (const value of entry.values) {
+        const cell = make('td', String(value));
+        cell.style.cssText = 'padding:8px;white-space:nowrap';
+        row.append(cell);
+      }
+      const cell = make('td');
+      const button = make('button', entry.title);
+      button.style.cssText = 'text-align:left;width:100%;padding:8px';
+      button.disabled = !entry.items.length;
+      row.onpointerenter = () => { if (chosen !== entry.items) choose(entry.items); };
+      button.onfocus = () => choose(entry.items);
+      button.onclick = () => openScript(entry.items[0].url);
+      cell.append(button);
+      row.append(cell);
+      rows.append(row);
+    }
+    table.append(rows);
+    list.replaceChildren(entries.length ? table : make('p','Chưa có bài phù hợp.'));
   }
+  let generation = 0;
   async function load(force = false) {
-    if (refresh.disabled) return;
+    const ticket = ++generation;
     refresh.disabled = true;
-    status.textContent = 'Đang tải tin…';
+    status.textContent = 'Đang tải…';
     try {
-      const response = await fetch('/_desktop/news-rss' + (force ? '?refresh=1' : ''), {cache:'no-store'});
+      const params = new URLSearchParams({country:country.value,refresh:force?'1':'0',trends:trendMode?'1':'0'});
+      const response = await fetch('/_desktop/news-rss?' + params, {cache:'no-store'});
       if (!response.ok) throw new Error('Không tải được bảng tin.');
       const result = await response.json();
-      if (result.articles.length || !articles.length) articles = result.articles;
+      if (ticket !== generation) return;
+      articles = trendMode ? result.trends : result.groups;
       loaded = true;
-      status.textContent = articles.length + ' bài' + (result.failed.length ? ' · Nguồn chưa tải được: ' + result.failed.join(', ') : '');
+      status.textContent = trendMode ? articles.length+' từ khóa · Google Trends' :
+        articles.length+' nhóm tin · '+(result.total-result.failed.length)+'/'+result.total+' luồng RSS'+
+        (result.failed.length ? ' · Lỗi: '+result.failed.join(', ') : '');
       render();
     } catch (error) {
-      status.textContent = error.message;
+      if (ticket === generation) status.textContent = error.message;
     } finally {
-      refresh.disabled = false;
+      if (ticket === generation) refresh.disabled = false;
     }
   }
   function show(value) {
@@ -101,6 +193,10 @@
   nav.onclick = step.onclick = () => show(true);
   refresh.onclick = () => load(true);
   filter.oninput = render;
+  topic.onchange = render;
+  country.onchange = () => load();
+  setInterval(() => { if (auto.checked && active && !refresh.disabled) load(true); }, 900000);
+  list.style.cssText = 'max-height:62vh;overflow:auto;border:1px solid #dce6e2;border-radius:8px';
   document.addEventListener('click', event => {
     const control = event.target.closest('.sidebar nav button, .steps-bar button');
     if (active && control && control !== nav && control !== step) show(false);
