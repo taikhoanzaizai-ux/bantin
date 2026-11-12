@@ -45,3 +45,46 @@ def download_media(url):
     if mime.startswith('image/') and len(body) > 15_000_000:
         raise ArticleError('Ảnh vượt 15 MB.')
     return body, mime
+
+def google_images(query, key):
+    if not isinstance(query,str) or not query.strip() or len(query)>180:
+        raise ArticleError('Nhập từ khóa từ 1 đến 180 ký tự.')
+    if not isinstance(key,str) or not key.strip() or len(key)>256 or any(c in key for c in '\r\n'):
+        raise ArticleError('Nhập khóa API Serper để tìm Google Hình ảnh.')
+    body=json.dumps({'q':query.strip(),'gl':'vn','hl':'vi','num':16}).encode()
+    raw,_,_=fetch_public('https://google.serper.dev/images',limit=2_000_000,body=body,
+                         headers={'X-API-KEY':key.strip(),'Content-Type':'application/json'})
+    results=[]
+    seen=set()
+    for item in json.loads(raw).get('images',[])[:16]:
+        url=item.get('imageUrl','')
+        page=item.get('link','')
+        thumb=item.get('thumbnailUrl','')
+        if not public_web_url(url) or not public_web_url(page) or url in seen:
+            continue
+        seen.add(url)
+        results.append({'title':str(item.get('title') or 'Ảnh Google')[:180],'url':url,
+                        'page':page,'thumb':thumb if public_web_url(thumb) else '',
+                        'license':'','mime':'image/*','size':0})
+    return results
+
+def public_web_url(value):
+    if not isinstance(value,str) or len(value)>8192:
+        return False
+    try:
+        url=urlsplit(value)
+        return url.scheme in ('http','https') and bool(url.hostname) and not url.username and not url.password
+    except ValueError:
+        return False
+
+def download_image(url):
+    if not public_web_url(url):
+        raise ArticleError('Địa chỉ ảnh không hợp lệ.')
+    body, headers, _ = fetch_public(url,limit=15_000_000,timeout=15)
+    mime=headers.get('content-type','').split(';')[0].strip().lower()
+    valid = ((mime == 'image/jpeg' and body.startswith(b'\xff\xd8\xff')) or
+             (mime == 'image/png' and body.startswith(b'\x89PNG\r\n\x1a\n')) or
+             (mime == 'image/webp' and body[:4] == b'RIFF' and body[8:12] == b'WEBP'))
+    if not valid:
+        raise ArticleError('Ảnh gốc cần có định dạng JPG, PNG hoặc WebP.')
+    return body,mime
