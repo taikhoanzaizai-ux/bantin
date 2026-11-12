@@ -32,5 +32,29 @@
       setTimeout(check, 2500);
     }
   }
+  const update = document.createElement('button');
+  update.type = 'button';
+  update.textContent = 'Kiểm tra cập nhật';
+  update.style.cssText = 'position:fixed;right:20px;bottom:66px;z-index:1000;padding:9px 13px;border:1px solid #17654f;border-radius:8px;background:white;color:#17654f;cursor:pointer';
+  document.body.append(update);
+  update.onclick = async () => {
+    update.disabled = true;
+    update.textContent = 'Đang kiểm tra…';
+    try {
+      const response = await fetch('/_desktop/github-update', {cache:'no-store'});
+      const info = await response.json();
+      if (!response.ok) throw new Error(info.message || 'Không kiểm tra được phiên bản.');
+      if (!info.available) {
+        alert('Bạn đang dùng bản mới nhất: ' + info.current);
+      } else if (confirm('Có bản mới: ' + info.latest + '. Tải ZIP từ GitHub?')) {
+        window.open('https://github.com/taikhoanzaizai-ux/bantin/archive/refs/heads/main.zip', '_blank', 'noopener');
+      }
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      update.disabled = false;
+      update.textContent = 'Kiểm tra cập nhật';
+    }
+  };
   check();
 })();

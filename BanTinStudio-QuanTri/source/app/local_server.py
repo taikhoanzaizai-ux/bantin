@@ -65,6 +65,19 @@ class Handler(BaseHTTPRequestHandler):
             else:self.send(401,{'message':'Phiên kết nối đã cũ. Mở lại Quân Bản Tin.exe.'})
             return
         self.server.last_seen=time.monotonic()
+        if url.path=='/_desktop/github-update':
+            try:
+                import urllib.request
+                request=urllib.request.Request('https://raw.githubusercontent.com/taikhoanzaizai-ux/bantin/main/BanTinStudio-QuanTri/VERSION.txt',headers={'User-Agent':'Quan-Ban-Tin','Cache-Control':'no-cache'})
+                with urllib.request.urlopen(request,timeout=8) as response:
+                    latest=response.read(512).decode('utf-8-sig').strip()
+                current=(ROOT/'VERSION.txt').read_text(encoding='utf-8-sig').strip()
+                def version(value):
+                    return tuple(int(part) for part in value.split()[-1].split('.'))
+                self.send(200,{'current':current,'latest':latest,'available':version(latest)>version(current)})
+            except (OSError,ValueError,IndexError):
+                self.send(502,{'message':'Không kiểm tra được phiên bản trên GitHub.'})
+            return
         if url.path=='/_desktop/tin-nong':
             if not self.server.licensing.check()['ok']:
                 self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
