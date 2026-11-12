@@ -28,6 +28,24 @@
       if (!response.ok) return;
       const entry = await response.json();
       if (!entry?.id || seen.has(entry.id)) return;
+      if (entry.url) {
+        if (sessionStorage.getItem('tin-nong-link-v1') === entry.id) return;
+        const input = document.getElementById('article-url');
+        if (!input) {
+          const tab = Array.from(document.querySelectorAll('button.nav-item'))
+            .find(item => item.textContent.trim().startsWith('Kịch bản'));
+          if (tab && !tab.disabled) tab.click();
+          return;
+        }
+        if (input.disabled) return;
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, entry.url);
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+        sessionStorage.setItem('tin-nong-link-v1', entry.id);
+        seen.add(entry.id);
+        button.textContent = 'Đã điền link từ Tin Nóng';
+        button.disabled = true;
+        return;
+      }
       pending = entry;
       button.disabled = false;
       button.textContent = 'Mở kịch bản từ Tin Nóng';

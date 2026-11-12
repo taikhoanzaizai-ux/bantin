@@ -94,6 +94,14 @@ class Handler(BaseHTTPRequestHandler):
                     raw=handle.read(1048577)
                 if len(raw)>1048576:raise ValueError('Kịch bản vượt giới hạn.')
                 entry=json.loads(raw)
+                if isinstance(entry,dict) and isinstance(entry.get('id'),str) and 'url' in entry:
+                    link=entry['url']
+                    if not isinstance(link,str) or len(link)>8192:raise ValueError('Link không hợp lệ.')
+                    parsed=urllib.parse.urlsplit(link)
+                    if parsed.scheme not in ('http','https') or not parsed.hostname:
+                        raise ValueError('Link không hợp lệ.')
+                    self.send(200,{'id':entry['id'],'url':link})
+                    return
                 project=entry['project']
                 if not isinstance(entry['id'],str) or not all(isinstance(project.get(k),str) for k in ('title','script')):
                     raise ValueError('Kịch bản không hợp lệ.')
