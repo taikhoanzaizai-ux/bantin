@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import React from 'react';
+import Renderer,{act} from 'react-test-renderer';
+import {testModules} from './test-modules.mjs';
+const load=testModules({'app/page.tsx':`import React from 'react';export default function Home(){return React.createElement('div',null,'Editor');}`});
+const {default:Desktop}=await import(load('app/desktop-shell.tsx'));
+globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+let confirm=false,closed=0,requests=[],timers=[],cleared=[];
+globalThis.window={confirm(){return confirm;},close(){closed++;},dispatchEvent(){},setInterval(fn,ms){timers.push({fn,ms});return timers.length;},clearInterval(id){cleared.push(id);}};
+globalThis.fetch=async(path,options={})=>{requests.push([path,options]);return new Response(JSON.stringify(path==='/_desktop/quit'?{ok:true}:{ok:true,owner:true,csrf:'desktop-csrf'}));};
+const text=n=>typeof n==='string'?n:Array.isArray(n)?n.map(text).join(''):n?.props?.children?text(n.props.children):n?.children?text(n.children):'';
+let ui;await act(async()=>{ui=Renderer.create(React.createElement(Desktop));});
+assert.equal(timers[0].ms,10000);assert.ok(text(ui.toJSON()).includes('QUÂN BẢN TIN'));
+const quit=()=>ui.root.findAllByType('button').find(n=>text(n)==='Thoát phần mềm');
+assert.equal(quit().props.disabled,false);await act(async()=>quit().props.onClick());assert.equal(requests.filter(r=>r[0]==='/_desktop/quit').length,0);
+confirm=true;await act(async()=>quit().props.onClick());assert.equal(requests.at(-1)[0],'/_desktop/quit');assert.equal(requests.at(-1)[1].headers['X-Studio-CSRF'],'desktop-csrf');assert.equal(closed,1);assert.ok(text(ui.toJSON()).includes('Quân Bản Tin đã đóng'));assert.deepEqual(cleared,[1]);await act(async()=>ui.unmount());
+console.log('PASS: desktop shell heartbeats, named UI, quit cancellation, authenticated quit request, closed view, and timer cleanup. Native Windows window closing remains unverified.');

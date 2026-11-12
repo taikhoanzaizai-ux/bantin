@@ -1,0 +1,8 @@
+import {defaultTextStyles,type TextStyles,type FontAsset} from './text-style';
+import {normalizeDesign} from './template-design';
+import type {CaptionMode} from './caption-presets';
+import type {RenderData} from './render-news';
+export type TemplateText={title?:string;styles:TextStyles;fonts:FontAsset[];brand:string;tagline:string;brandEnabled:boolean;titleEnabled:boolean;captionMode:CaptionMode};
+export function normalizeTemplateText(raw:unknown):TemplateText|undefined{if(raw===undefined||raw===null)return undefined;if(typeof raw!=='object'||Array.isArray(raw))throw Error('Thiết lập chữ riêng không hợp lệ.');const s=raw as Partial<TemplateText>,d=normalizeDesign({textStyles:s.styles,fonts:s.fonts,brand:s.brand,tagline:s.tagline,brandEnabled:s.brandEnabled,titleEnabled:s.titleEnabled,captionMode:s.captionMode});if(s.title!==undefined&&(typeof s.title!=='string'||s.title.length>120))throw Error('Tiêu đề riêng tối đa 120 ký tự.');return {title:s.title,styles:d.textStyles,fonts:d.fonts,brand:d.brand,tagline:d.tagline,brandEnabled:d.brandEnabled,titleEnabled:d.titleEnabled,captionMode:d.captionMode};}
+export function textFromRender(d:Partial<RenderData>,fonts:FontAsset[]=[]):TemplateText{return normalizeTemplateText({styles:d.textStyles||defaultTextStyles(),fonts,brand:d.brand??'BẢN TIN',tagline:d.tagline??'ĐIỂM TIN',brandEnabled:d.brandEnabled!==false,titleEnabled:d.titleEnabled!==false,captionMode:d.captionMode||'line'})!;}
+export function textOverrides(value:TemplateText|undefined):Partial<RenderData>{return value?{...(value.title!==undefined?{title:value.title}:{}),textStyles:value.styles,brand:value.brand,tagline:value.tagline,brandEnabled:value.brandEnabled,titleEnabled:value.titleEnabled,captionMode:value.captionMode}:{};}

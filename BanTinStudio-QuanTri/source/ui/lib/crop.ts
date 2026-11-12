@@ -1,0 +1,7 @@
+import type {Picture} from './news';
+export type CropRect={x:number;y:number;width:number;height:number};
+export function cropRect(p:Picture):CropRect{return {x:p.cropLeft||0,y:p.cropTop||0,width:100-(p.cropLeft||0)-(p.cropRight||0),height:100-(p.cropTop||0)-(p.cropBottom||0)};}
+const clamp=(v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
+export function moveCrop(rect:CropRect,handle:string,dx:number,dy:number,ratio=0,sourceRatio=1):CropRect{if(handle==='move')return {...rect,x:clamp(rect.x+dx,0,100-rect.width),y:clamp(rect.y+dy,0,100-rect.height)};let l=rect.x,r=l+rect.width,t=rect.y,b=t+rect.height;if(handle.includes('w'))l=clamp(l+dx,0,r-5);if(handle.includes('e'))r=clamp(r+dx,l+5,100);if(handle.includes('n'))t=clamp(t+dy,0,b-5);if(handle.includes('s'))b=clamp(b+dy,t+5,100);if(ratio){const q=ratio/sourceRatio;let w=r-l,h=b-t;if(handle==='n'||handle==='s')w=h*q;else h=w/q;if(w>100){w=100;h=w/q;}if(h>100){h=100;w=h*q;}l=handle.includes('w')?r-w:l;t=handle.includes('n')?b-h:t;l=clamp(l,0,100-w);t=clamp(t,0,100-h);r=l+w;b=t+h;}return {x:l,y:t,width:r-l,height:b-t};}
+export function ratioCrop(ratio:number,sourceRatio:number):CropRect{if(!ratio)return{x:0,y:0,width:100,height:100};const q=ratio/sourceRatio,w=Math.min(100,100*q),h=w/q;return {x:(100-w)/2,y:(100-h)/2,width:w,height:h};}
+export function cropPatch(r:CropRect){return {cropLeft:r.x,cropRight:100-r.x-r.width,cropTop:r.y,cropBottom:100-r.y-r.height};}

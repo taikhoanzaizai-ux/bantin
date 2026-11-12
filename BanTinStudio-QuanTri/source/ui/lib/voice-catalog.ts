@@ -1,0 +1,5 @@
+// Public display names from https://audio.aidancing.net/; reference catalog only.
+// These labels do not grant access to the provider's voice models or audio.
+export const voiceCatalog = [
+ ['Giọng Adam',''],['Trung Caha','Rõ ràng, Chắc chắn'],['Kiều Linh',''],['Tùng Đặng','Trầm, Ấm áp'],['Hạnh',''],['Tùng Đặng','Ấm áp, Điềm tĩnh'],['Ngân Nguyễn',''],['Triều Dương',''],['Như',''],['Mai',''],['Hải Ly','Trầm, Nghiêm túc'],['Tuyết',''],['Hiền',''],['Ninh Đôn',''],['Sơn Trần',''],['Tuấn',''],['Nhật',''],['Huyền',''],['Trung',''],['Đức',''],['Quang Nguyễn',''],['Ly',''],['Trang','Rõ ràng, Mượt mà'],['Hùng Trần',''],['Kênh',''],['Anh',''],['Hoàng Đặng',''],['Viên',''],['Ngân',''],['Dũng',''],['Sang Trương',''],['Huyền',''],['Thắm',''],['Thảo',''],['Hào',''],['My',''],['Liam',''],['Thanh',''],['Giang',''],['Huy Lê',''],['Huỳnh Dương',''],['Phương',''],['Minh',''],['An Nhiên',''],['Xuân',''],['Quỳnh Anh',''],['Emma','Điềm tĩnh, Êm dịu'],['Phong','Ấm áp, Rõ ràng'],['Nhung','Rõ ràng, Trang trọng'],['Trang','Nhẹ nhàng'],['Viết Linh','']
+].map(([name,description],i)=>({id:String(i),name,description}));

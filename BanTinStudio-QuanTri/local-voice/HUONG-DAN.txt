@@ -1,0 +1,56 @@
+BẢN MÁY TÍNH: nguồn được phép http://127.0.0.1:8787
+Bản portable: mở Quân Bản Tin.exe ở thư mục gốc; AI được quản lý tự động trong data/ai. start-windows.bat chỉ là bộ chạy thủ công riêng.
+
+BẢN TIN STUDIO — BỘ CHẠY GIỌNG VIỆT MIỄN PHÍ
+
+1. Cài Python 3.11 (64 bit) từ https://www.python.org/downloads/ nếu máy chưa có.
+   Trên Windows, chọn “Add Python to PATH” trong trình cài đặt.
+2. Giải nén cả thư mục này vào một nơi bạn có quyền ghi.
+3. Windows: mở start-windows.bat. macOS/Linux: chạy sh start-macos-linux.sh.
+4. Lần đầu cần Internet để cài thư viện và tải mô hình. Các lần sau dùng mô hình đã tải.
+5. Giữ cửa sổ bộ chạy mở. Chép “Mã ghép nối” đang hiện.
+6. Trong Bản Tin Studio → Cảnh & giọng đọc → Kết nối VieNeu.
+   Địa chỉ mặc định: http://127.0.0.1:8000. Nhập mã ghép nối và bấm kết nối.
+   Nếu trình duyệt hỏi quyền truy cập mạng/thiết bị cục bộ, cho phép để website kết nối bộ chạy.
+7. Chọn giọng có sẵn hoặc tải giọng mẫu riêng (3–8 giây rõ tiếng), rồi tạo lời đọc/video.
+
+Trang kết nối: https://ban-tin-doc.t-i-kho-n-pr-8798.chatgpt.site
+
+Không cần khóa FPT.AI, ElevenLabs hoặc trả phí theo ký tự. Máy của bạn chạy mô hình,
+vì vậy tốc độ tùy cấu hình. Tải lời đọc hoàn chỉnh MP3/WAV vào website thì không cần bộ chạy này.
+
+Mẫu giọng bạn nạp được lưu ở thư mục my-voices bên cạnh server.py để dùng lại sau.
+Giữ riêng thư mục này nếu muốn giữ các giọng riêng. Mã ghép nối thay đổi khi khởi động lại.
+Bộ chạy chỉ lắng nghe trên máy tính hiện tại, không tự mở cổng ra Internet.
+
+VieNeu-TTS v3 Turbo của Phạm Nguyễn Ngọc Bảo:
+https://github.com/pnnbao97/VieNeu-TTS
+https://huggingface.co/pnnbao-ump/VieNeu-TTS-v3-Turbo
+SDK và mô hình công bố theo Apache License 2.0. Giữ thông báo của các thành phần khi phân phối lại.
+Bộ này không kèm trọng số mô hình hoặc mã SDK; chúng được cài từ nguồn chính thức.
+Chỉ dùng mẫu giọng của bạn hoặc mẫu có quyền sử dụng.
+
+Đã kiểm tra hợp đồng kết nối và xử lý file bằng mô hình giả lập; chưa xác nhận chất lượng
+giọng thật hoặc khả năng cài đặt trên máy Windows của bạn.
+
+CẬP NHẬT 1.1 — SỬA LỖI “EXTERNAL DATA PATH ESCAPES MODEL DIRECTORY”
+Nếu đã cài bản trước: đóng cửa sổ bộ chạy, giải nén đè các file của bộ mới vào
+thư mục cũ (ví dụ D:\ban-tin-vieneu). Cần có cả server.py và model_files.py.
+Giữ nguyên .venv và my-voices, rồi mở lại start-windows.bat.
+Bộ mới tạo các bản sao tệp mô hình thực trong models-local để ONNX và trọng số
+nằm cạnh nhau. Không xóa cache Hugging Face; có thể tận dụng các tệp đã tải.
+Cần thêm dung lượng đĩa cho bản sao mô hình. Nếu còn thiếu tệp, thư viện sẽ tải tiếp.
+Cảnh báo không có HF_TOKEN chỉ nói về hạn mức/tốc độ tải, không phải lỗi chặn đường dẫn.
+
+CẬP NHẬT 1.2 — PHỤ ĐỀ CĂN THEO VOICE
+Đóng bộ chạy, giải nén đè đầy đủ bộ 1.2 vào thư mục cũ. Giữ .venv, my-voices
+và models-local. Mở start-windows.bat để cài thêm faster-whisper.
+Trong website → Cảnh & giọng đọc → Căn phụ đề từ voice. Nếu chỉ cần phụ đề,
+kết nối này không buộc nạp mô hình tạo giọng VieNeu.
+Lần đầu nhận dạng tải mô hình Whisper đa ngôn ngữ (Small mặc định; có thể chọn Base nhẹ hơn) về máy. Mô hình chạy
+CPU int8; thời gian xử lý tùy cấu hình. Giọng được gửi đến 127.0.0.1 trên máy
+của bạn, không gửi tới máy chủ website hoặc dịch vụ giọng đọc tính phí.
+Phụ đề lấy chữ và mốc từng từ từ âm thanh thực tế, không chia đều theo kịch bản.
+Cần nghe rà và sửa tên riêng/số liệu; nhận dạng tự động có thể sai chữ hoặc mốc.
+Có thể nhập file SRT đã căn sẵn mà không dùng bộ chạy.
+Nguồn faster-whisper (MIT): https://github.com/SYSTRAN/faster-whisper

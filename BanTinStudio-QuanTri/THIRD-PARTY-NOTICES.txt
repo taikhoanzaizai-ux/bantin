@@ -1,0 +1,30 @@
+BẢN TIN STUDIO — THÀNH PHẦN BÊN THỨ BA
+
+Các điều khoản sử dụng sản phẩm tích hợp không giới hạn quyền đã được cấp bởi các giấy phép bên dưới.
+Phần quản lý thời hạn của Bản Tin Studio không cấp độc quyền hoặc thu hồi quyền dùng các thư viện gốc.
+
+Python 3.13.16 (Windows x64 embeddable): bản chính thức từ python.org, giấy phép PSF và các thông báo
+đi kèm được giữ trong runtime/LICENSE.txt. SHA-256 của ZIP gốc:
+97dae5274cc54867065e8d5a3226e48c35017ed332a0fdb0e27d5b5821961297
+https://www.python.org/downloads/release/python-31316/
+
+React 19.2.6, React DOM 19.2.6, Scheduler 0.27.0: MIT. Lucide React 1.31.0: ISC/MIT notices as supplied.
+Giữ nguyên thông báo trong licenses/.
+
+Mediabunny 1.61.3: MPL-2.0. Bản thư viện không được sửa đổi trực tiếp; được build/minify vào ứng dụng.
+Mã nguồn tương ứng được cung cấp ngay trong third-party-source/mediabunny cùng LICENSE và package.json.
+Bạn có các quyền của MPL đối với phần mã đó; không cần trả phí riêng để nhận phần mã nguồn này.
+https://github.com/Vanilagy/mediabunny
+https://www.mozilla.org/MPL/2.0/
+
+VieNeu-TTS: liên kết bộ chạy tới SDK vieneu==3.8.3; dự án công bố Apache-2.0. Giấy phép giữ trong
+licenses/vieneu-APACHE-2.0.txt. Bộ ZIP không chứa trọng số mô hình hoặc toàn bộ môi trường AI.
+Khi cài SDK/mô hình/Whisper, các thành phần tải thêm giữ giấy phép và thông báo tương ứng của chúng.
+https://github.com/pnnbao97/VieNeu-TTS
+https://huggingface.co/pnnbao-ump/VieNeu-TTS-v3-Turbo
+
+Danh sách phiên bản thư viện build trong licenses/DEPENDENCIES.txt.
+Font hệ thống/âm thanh/video người dùng cung cấp không nằm trong quyền cấp của các thư viện này.
+
+Quân Bản Tin.exe: WinAPI GUI launcher compiled with MinGW-w64/GCC. Runtime notices and GCC runtime
+library exception are retained in licenses/MINGW-NOTICES.txt. Launcher source is included for the tool owner.

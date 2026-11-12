@@ -1,0 +1,34 @@
+ĐƯA MÁY CHỦ BẢN QUYỀN LÊN VPS
+
+Yêu cầu: VPS Linux do bạn quản lý, Docker + Docker Compose, tên miền trỏ DNS A/AAAA về VPS,
+cho phép cổng 80 và 443. Không mở cổng SQLite, không công khai cổng 8788. Chưa triển khai thật trong gói này.
+
+1. Trên Windows, mở CHUAN-BI-GOI-SERVER.bat để chép customer-template.zip sang deploy/manager.
+   Sau đó chép TOÀN BỘ thư mục deploy lên VPS (gồm app/, manager/, customer-template.zip).
+2. Sao chép .env.example thành .env. Sửa LICENSE_DOMAIN thành tên miền thật của bạn, không kèm https://.
+3. Tại thư mục đó chạy: docker compose up -d --build
+4. Caddy nhận tên miền và tự xin chứng chỉ HTTPS. DNS/cổng mạng phải đúng để cấp chứng chỉ.
+5. Mở https://TÊN-MIỀN-CỦA-BẠN và đăng nhập bằng mật khẩu mới tạo trong:
+   deploy/data/MAT-KHAU-QUAN-TRI.txt
+   Tài khoản admin; giao diện hiện tại chỉ cần nhập mật khẩu.
+6. Trong trang quản trị VPS, nhập https://TÊN-MIỀN-CỦA-BẠN và thông tin liên hệ gia hạn.
+   Lưu cấu hình → Tải bản ZIP gửi khách → Tạo mã. Gửi đúng bản khách và mã riêng.
+7. Tạo/gia hạn/khóa tại trang quản trị VPS. Không dùng bảng quản lý local nếu muốn sửa dữ liệu trên VPS.
+
+Mang dữ liệu đã cấp local lên:
+- Dừng bộ chạy local trước. Sao lưu data/license-server cạnh tool (bản trước 1.5 dùng %LOCALAPPDATA%\BanTinLicenseServer).
+- Nếu VPS CHƯA cấp mã cho ai: docker compose down; chép licenses.sqlite3 và admin-auth.json
+  (cùng file mật khẩu của bạn) từ thư mục local sang deploy/data trên VPS; khởi động lại.
+- Nếu cả hai nơi đã có dữ liệu: KHÔNG ghi đè tùy tiện. Cần hợp nhất có sao lưu bằng kỹ thuật viên.
+- Luôn nhập lại server_url HTTPS đúng ở trang quản trị VPS và tạo bản khách mới.
+
+Sao lưu: docker compose down, sao chép toàn bộ data/ vào nơi an toàn, docker compose up -d.
+Không gửi data/, file admin-auth.json hoặc mật khẩu cho khách. Theo dõi đồng hồ UTC trên VPS.
+Nên hạn chế trang /api/admin và / quản trị theo IP/VPN ở reverse proxy khi có đội kỹ thuật vận hành.
+API cần công khai cho khách là POST /api/v1/check; /health chỉ trả tình trạng dịch vụ.
+Bản này là nền tảng quản lý nhỏ, chưa kiểm thử tải lớn hoặc đánh giá bảo mật độc lập.
+
+Tài liệu chính thức:
+https://caddyserver.com/docs/quick-starts/https
+https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/
+https://hub.docker.com/_/python

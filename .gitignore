@@ -1,0 +1,10 @@
+data/
+node_modules/
+__pycache__/
+.venv/
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.pyc

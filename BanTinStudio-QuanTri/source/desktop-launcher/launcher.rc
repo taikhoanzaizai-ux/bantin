@@ -1,0 +1,28 @@
+#pragma code_page(65001)
+1 ICON "quan-ban-tin.ico"
+1 VERSIONINFO
+ FILEVERSION 1,5,0,0
+ PRODUCTVERSION 1,5,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+BEGIN
+ BLOCK "StringFileInfo"
+ BEGIN
+  BLOCK "040904b0"
+  BEGIN
+   VALUE "CompanyName", "Quân Bản Tin\0"
+   VALUE "FileDescription", "Quân Bản Tin\0"
+   VALUE "FileVersion", "1.5.0\0"
+   VALUE "InternalName", "QuanBanTin\0"
+   VALUE "OriginalFilename", "Quân Bản Tin.exe\0"
+   VALUE "ProductName", "Quân Bản Tin\0"
+   VALUE "ProductVersion", "1.5.0\0"
+  END
+ END
+ BLOCK "VarFileInfo"
+ BEGIN
+  VALUE "Translation", 0x409, 1200
+ END
+END

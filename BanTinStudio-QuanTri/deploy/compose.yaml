@@ -1,0 +1,33 @@
+services:
+  license:
+    build: .
+    restart: unless-stopped
+    environment:
+      BTS_LICENSE_DATA: /data
+      BTS_PUBLIC_HTTPS: "1"
+    volumes:
+      - ./data:/data
+    expose:
+      - "8788"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8788/health',timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      LICENSE_DOMAIN: ${LICENSE_DOMAIN:?Set LICENSE_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - license
+volumes:
+  caddy_data:
+  caddy_config:

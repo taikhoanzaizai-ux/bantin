@@ -1,0 +1,384 @@
+QUÂN BẢN TIN — BẢN WINDOWS & QUẢN LÝ THỜI HẠN
+Phiên bản portable 1.13.0 • 23/10/2026
+
+A. MỞ TOOL TRÊN MÁY CỦA BẠN
+1. Giải nén TOÀN BỘ gói ZIP vào một thư mục riêng, ví dụ D:\BanTinStudio.
+   Không chạy file .bat ngay bên trong cửa sổ ZIP chưa giải nén.
+2. Nhấp đúp Quân Bản Tin.exe. Không hiện CMD; không cần mở BAT.
+3. Tool mở qua Chrome/Edge trên chính máy bạn, địa chỉ 127.0.0.1:8787.
+   Đây là giao diện chạy cục bộ, không mở website ChatGPT và không cần đăng nhập ChatGPT.
+   Bản CHỦ SỞ HỮU không giới hạn thời hạn. Chỉ bạn giữ bản này.
+4. Không cần cài Node.js hoặc Python để dùng phần dựng video: đã kèm Python portable 64-bit.
+   Yêu cầu Windows 10/11 x64 và Chrome/Edge hiện đại. EXE mở ứng dụng cục bộ bằng Chrome/Edge đã cài trên máy.
+   Windows ARM cần khả năng chạy ứng dụng x64; chưa kiểm thử nền tảng này.
+5. Trên website cũ, chọn Lưu dự án rồi tải file JSON. Trong tool, chọn Mở dự án để tiếp tục.
+   Kho mẫu/dự án trên website không tự đồng bộ sang địa chỉ cục bộ mới.
+6. Lưu dự án trước khi đóng. Các mẫu và kho nhạc nằm trong hồ sơ ứng dụng riêng ở data/browser cạnh tool.
+
+LƯU VIDEO VÀ DỰ ÁN
+- Sau khi tạo video, bấm Lưu video: chọn thư mục và tên file trong hộp thoại rồi bấm Save/Lưu.
+- Tên mặc định lấy từ Tiêu đề bản tin ở mục Kịch bản, giữ tiếng Việt; ký tự không hợp lệ được thay bằng dấu gạch.
+  Chưa nhập tiêu đề: dùng “Bản tin”. Nhiều mẫu: thêm số thứ tự và tên mẫu vào tên video.
+- Lưu tất cả (ZIP) cũng cho chọn nơi lưu. Các file bên trong giữ tên tiêu đề và mẫu tương ứng.
+- Bấm Lưu dự án để chọn thư mục/tên file JSON. Lần sau dùng Mở dự án, chọn lại file đó.
+- Mỗi lần lưu đều hỏi vị trí; hộp thoại Chrome/Edge có thể nhớ thư mục dùng gần nhất, riêng video/ZIP/dự án.
+- Hủy hộp thoại: không tải tự động, kết quả vẫn ở tool để lưu sau. Chỉ đóng tool khi đã báo Đã lưu.
+- Nếu ghi đè file, xác nhận trong hộp thoại. Dự án chỉ bắt đầu ghi sau khi chuẩn bị đầy đủ dữ liệu.
+- Dùng Chrome/Edge hiện đại. Nếu trình duyệt không hỗ trợ hộp thoại, tool báo đổi trình duyệt.
+
+B. VIENEU TỰ KẾT NỐI — DỮ LIỆU PORTABLE
+- Mở Quân Bản Tin.exe → Cảnh & giọng đọc → VieNeu → Chuẩn bị / sửa thư viện VieNeu.
+- Dùng Python 3.11 x64 đầy đủ đã cài trên máy để tạo môi trường riêng trong data/ai/.venv.
+  Tool không cài thêm Python hệ thống và không chuyển Python/Chrome/Edge đã cài sẵn ở C.
+  Python portable 3.13 kèm trong runtime chỉ chạy giao diện/bộ quản lý, không thay Python AI.
+- Lần đầu chuyển từ bản lưu AppData: cần chuẩn bị thư viện một lần tại thư mục mới (cần Internet).
+  Tool sao chép giọng .wav/.json, models-local và cache HF của các repo VieNeu/NeuCodec/phụ đề nhận diện được.
+  Không sao chép hoặc chạy .venv cũ ở C vì môi trường đó có đường dẫn cài đặt riêng.
+  Mô hình đã nhận diện và sao chép thành công được dùng lại; tệp/model tùy chọn còn thiếu có thể cần tải lần đầu.
+- Các bản gốc trong AppData/cache C được giữ nguyên, không tự xóa. Chỉ dọn bản cũ sau khi bạn đã kiểm tra
+  giọng/mô hình ở thư mục mới. Không xóa Python hoặc trình duyệt hệ thống.
+- Dữ liệu mới: data/ai/.venv (thư viện), data/ai/models-local (ONNX), data/ai/my-voices (giọng riêng),
+  data/ai/cache/huggingface (cache mô hình), data/ai/cache/pip (gói cài), data/temp (tạm), data/logs (nhật ký).
+  Những đường dẫn này nằm cạnh EXE, kể cả khi bạn giải nén ở D hoặc E. Không tự chuyển sang AppData nếu thiếu quyền ghi.
+- Những lần sau chỉ mở EXE. Tự kết nối, nhớ giọng và dùng lại dữ liệu đã lưu; vẫn phải nạp mô hình từ đĩa vào RAM.
+- Khi cập nhật, thoát app rồi chép các file mới vào cùng thư mục; GIỮ NGUYÊN data.
+  Nếu chuyển toàn bộ tool sang đường dẫn khác trên cùng máy, mang theo data. Python 3.11 vẫn phải còn trên máy;
+  nếu môi trường không còn hợp lệ, bấm Chuẩn bị / sửa thư viện, giọng và cache vẫn được giữ.
+- Kết nối lại không cài thư viện. Chuẩn bị / kiểm tra cập nhật chỉ cài/tải phần còn thiếu hoặc cập nhật SDK.
+- Bản khách vẫn cần Internet để xác thực bản quyền. Tải lời đọc có sẵn không yêu cầu cài AI.
+
+C. QUẢN LÝ NGƯỜI MUA & THỜI GIAN SỬ DỤNG
+1. Nhấp MO-QUAN-LY-BAN-QUYEN.bat. Trang quản trị mở ở 127.0.0.1:8788.
+2. Lần đầu, hệ thống tự tạo mật khẩu riêng trong:
+   data\license-server\MAT-KHAU-QUAN-TRI.txt
+   Khi mở bằng nút .bat trên máy chủ, đường mở ngẫu nhiên đăng nhập giúp bạn.
+   Khi truy cập từ xa, cần nhập mật khẩu. Không gửi mật khẩu hoặc thư mục dữ liệu cho khách.
+3. Tạo khách: nhập tên, chọn 1 tháng (30 ngày), 90/180/365 ngày hoặc ngày giờ hết hạn cụ thể;
+   chọn số máy, mặc định 1; bấm Tạo mã kích hoạt. Mã đầy đủ chỉ hiện lúc cấp/đổi mã: lưu và gửi riêng.
+   THỜI HẠN TÍNH TỪ LÚC BẠN CẤP MÃ, không phải lần mở tool đầu tiên.
+4. Khách thanh toán tiếp: bấm +30 ngày hoặc Gia hạn khác. Mã cũ tiếp tục sử dụng, không cần cài lại.
+   Nếu chưa hết hạn, cộng từ hạn hiện tại. Nếu đã hết hạn, cộng từ lúc bạn gia hạn.
+5. Khóa/Mở khóa tạm dừng/cho phép mã. Gia hạn không tự mở khóa mã đang bị bạn khóa.
+6. Gỡ máy để khách đổi máy; Đổi mã để hủy mã cũ và cấp mã mới nếu thất lạc/lộ mã.
+7. Hết hạn/khóa/mất kết nối: bản khách bị khóa ở lần kiểm tra tiếp theo, thường trong vòng một phút.
+   App kiểm tra trước khi dựng và trong khi xuất; phiên xác thực dùng đồng hồ đếm đơn điệu.
+   Đổi ngày giờ trên Windows của KHÁCH không kéo dài ngày hết hạn do máy chủ quyết định.
+   Máy khách cần Internet; không có chế độ dùng nhiều ngày offline.
+8. Dữ liệu đang mở không bị tự xóa khi hết hạn; giao diện bị khóa. Sau khi gia hạn, kiểm tra lại để tiếp tục.
+   Video đang dựng có thể bị dừng, cần dựng lại. Luôn lưu dự án trước các phiên dài.
+
+D. TẠO BẢN GỬI KHÁCH
+1. Cần máy chủ bản quyền hoạt động trên Internet bằng HTTPS (xem phần E).
+2. Trong trang QUẢN TRỊ ĐANG KẾT NỐI ĐÚNG MÁY CHỦ, nhập địa chỉ như
+   https://banquyen.tenmiencuaban.vn và thông tin Zalo/SĐT/email gia hạn của bạn; lưu.
+3. Bấm Tải bản ZIP gửi khách. Hệ thống tạo BanTinStudio-Khach-Hang.zip riêng.
+4. CHỈ gửi file ZIP do nút đó tạo ra cùng mã kích hoạt của từng khách.
+   KHÔNG gửi gói quản trị bạn vừa tải, owner_launcher.py, customer-template.zip, source hoặc dữ liệu máy chủ.
+5. Khách giải nén ZIP, mở Quân Bản Tin.exe, nhập mã, dùng trên máy đã kích hoạt.
+6. Giữ nguyên tên miền API khi gia hạn; đổi tên miền phải tạo gói khách mới hoặc cập nhật cấu hình.
+   File mẫu customer-template.zip chưa có máy chủ, không phải bản sẵn để gửi người mua.
+
+E. MÁY CHỦ INTERNET — PHẦN CẦN THIẾT TRƯỚC KHI BÁN TỪ XA
+- Trong gói có deploy/ với Docker Compose + Caddy để đưa bộ quản lý lên VPS Linux.
+  Đọc deploy/HUONG-DAN-TRIEN-KHAI.txt. Cần VPS/tên miền do bạn quản lý; gói này chưa đăng ký,
+  chưa thanh toán dịch vụ và chưa kết nối một máy chủ Internet thật cho bạn.
+- 127.0.0.1 chỉ trỏ về chính máy đang dùng. Gửi URL 127.0.0.1:8788 cho khách ở nơi khác sẽ KHÔNG hoạt động.
+- Có thể đặt máy chủ tại máy Windows của bạn sau một reverse proxy/tunnel HTTPS ổn định,
+  nhưng máy phải luôn bật và có Internet. Chưa có tunnel hay tên miền nào được tạo sẵn.
+- Sau khi chuyển lên VPS: cấp mã/gia hạn ở trang quản trị trên VPS. Trang quản trị local không tự đồng bộ VPS.
+  Muốn mang danh sách đã tạo local lên, dừng bộ chạy và di chuyển dữ liệu máy chủ theo hướng dẫn triển khai.
+- Chỉ việc kiểm tra mã gửi ra máy chủ: mã kích hoạt, mã băm nhận diện máy và mã kiểm tra ngẫu nhiên.
+  Ảnh, video, kịch bản và giọng đọc không gửi tới máy chủ bản quyền.
+
+F. GIỚI HẠN THỰC TẾ
+- Đây là bản portable với cơ chế kiểm soát khách sử dụng bình thường, KHÔNG phải bảo vệ chống crack tuyệt đối.
+  Vì xử lý dựng video được giao cho máy khách, người có kỹ năng có thể sửa mã/bộ chạy để bỏ giới hạn.
+  Đóng gói .exe/che mã chỉ tăng độ khó; muốn kiểm soát mạnh hơn cần giữ một phần xử lý quan trọng trên máy chủ.
+- Bộ này chưa được chạy thử trực tiếp trên máy Windows của bạn, chưa kiểm thử Chrome/Edge với xuất MP4 thực tế.
+  Đã kiểm tra build/TypeScript, logic dựng, thao tác React, HTTP thật của cấp mã/kích hoạt, hết hạn/gia hạn,
+  đồng hồ đếm, giới hạn máy đồng thời và chặn truy cập tư liệu ứng dụng khi bản quyền không còn hợp lệ.
+- Hỗ trợ định dạng và tốc độ xuất phụ thuộc codec trình duyệt, CPU/RAM của máy; độ dài thực tế phụ thuộc tài nguyên máy.
+- Giấy phép các thành phần bên thứ ba được giữ trong licenses/ và third-party-source/.
+  Thời hạn bán áp dụng cho sản phẩm tích hợp của bạn; không thu hồi quyền do giấy phép mã nguồn mở gốc cấp.
+
+G. SAO LƯU
+- Dữ liệu quản trị local: data\license-server
+- Dữ liệu kích hoạt bản khách: data\client
+- Trước khi sao lưu SQLite: dừng máy chủ, sao chép toàn bộ thư mục dữ liệu, cất riêng ở nơi an toàn.
+- Không đưa thư mục dữ liệu quản trị vào ZIP gửi khách. Mất dữ liệu bản quyền có thể làm khách không xác thực được.
+- Source/ có mã nguồn dành cho chủ tool/kỹ thuật viên. Không cần mở thư mục này để sử dụng hằng ngày.
+
+NGHE THỬ GIỌNG TRƯỚC KHI TẠO
+- Mở Cảnh & giọng đọc, chọn VieNeu hoặc giọng clone đã nạp/lưu; chờ VieNeu Sẵn sàng.
+- Sửa Nội dung nghe thử (tối đa 240 ký tự), bấm Nghe thử giọng. Không cần có kịch bản hay ảnh trước.
+- Nghe lại dùng đoạn vừa tạo; đổi giọng/nội dung sẽ tạo mẫu mới. Có thể hủy chờ hoặc dùng thanh phát/tạm dừng.
+- Nếu trình duyệt chưa tự phát, bấm nút phát trên thanh âm thanh. Mẫu nghe thử tách riêng khỏi lời đọc bản tin.
+- Khi hài lòng, bấm Tạo lời đọc bằng VieNeu/giọng này để tạo toàn bộ kịch bản.
+- File voice tải lên hoặc lời đọc đầy đủ đã tạo cũng có thanh nghe riêng trước khi xuất video.
+- Danh mục AI Dancing vẫn nghe trên trang ngoài; bản này không có API/model của dịch vụ đó.
+
+TỐC ĐỘ ĐỌC
+- Chọn VieNeu/clone, kéo Tốc độ đọc từ 0.75× đến 1.50× (mặc định 1.00×).
+- Nghe thử và lời đọc đầy đủ dùng cùng tốc độ; waveform được xử lý trước khi nghe/ghép video,
+  không chỉ đổi tốc độ của thanh phát. Xử lý giữ cao độ bằng librosa (thư viện VieNeu đã yêu cầu).
+- Đổi tốc độ bỏ lời đọc AI/phụ đề cũ; tạo lại lời đọc, sau đó căn lại phụ đề từ audio mới.
+- Dự án JSON và lựa chọn giọng ghi nhớ tốc độ. Dự án cũ mặc định 1×. File voice tải lên giữ tốc độ vốn có.
+- Tính năng cần bridge mới trong gói này; đóng tool cũ và mở lại sau cập nhật. Không cần tải lại mô hình.
+
+SỬA LỖI KHÔNG HIỆN GIỌNG — BẢN 1.3.1
+- Đóng cửa sổ giao diện VÀ cửa sổ bộ chạy cũ trước khi giải nén/mở bản mới. Bản cũ đang chạy trên cổng
+  8787/8789 sẽ vẫn được dùng nếu chỉ mở thêm .bat. Không xóa thư mục BanTinStudioAI/cache/giọng riêng.
+- Cảnh & giọng đọc → chọn VieNeu → Kết nối lại / nạp lại danh sách giọng. Thao tác này không cài lại thư viện.
+- Nếu báo thiếu Python/SDK/tệp giọng, bấm Chuẩn bị / sửa thư viện VieNeu khi có Internet.
+  Cần Python 3.11 x64 đầy đủ cho AI; phần dựng video vẫn dùng Python portable đã kèm.
+- Chờ “VieNeu sẵn sàng · N giọng”, chọn một giọng và bấm Nghe thử giọng trước khi tạo lời đọc.
+- Phụ đề và mô hình cần cho giọng clone mới nạp khi dùng. Lần đầu mỗi phần có thể cần Internet; lỗi phần này không
+  ngăn mở danh sách giọng dựng sẵn. Các tệp đã có được dùng lại từ cache.
+- Nếu vẫn lỗi: mở Chẩn đoán VieNeu → Xem thông tin lỗi → Tải tệp chẩn đoán; gửi JSON để kiểm tra.
+  Tệp có đường dẫn và nhật ký cục bộ; không có âm thanh/giọng mẫu. Mã phiên/token HF đã được che trong log.
+- Không khẳng định đã sửa nguyên nhân riêng của máy nếu chưa đọc được log của máy đó.
+
+
+ẢNH/VIDEO, CHÂN TRANG VÀ KHO NHẠC — BẢN 1.4.0
+- Mở mục Ảnh & video: thả file từ máy lên bất kỳ vị trí nào trong giao diện tool. Có thể thả nhiều file.
+  Vẫn có nút chọn file. Kéo đổi vị trí nội bộ trong danh sách hoạt động như trước.
+- Bấm Đảo ngẫu nhiên thứ tự để trộn danh sách ảnh/video và cập nhật tư liệu tương ứng trong các cảnh.
+  Nội dung kịch bản và thời lượng cảnh không đổi. Có thể bấm lại để trộn tiếp.
+- Chọn chỉnh sửa một video: kéo hai tay nắm điểm đầu/cuối ngay dưới preview video, hoặc tua tới mốc
+  rồi bấm Đặt mốc đầu/cuối tại đây. Phát đoạn đã chọn để kiểm tra. Preview bên phải cũng có bộ chọn đoạn.
+  Mốc tính bằng giây của file gốc; việc cắt không tự thay đổi thời lượng cảnh. Muốn khớp thời lượng:
+  bấm Đặt thời lượng cảnh theo đoạn đã cắt. Cảnh dài hơn có thể giữ hình cuối hoặc lặp đoạn.
+- Phong cách → Thiết lập mẫu đang xem → Hiển thị chân video → Suốt video:
+  mặc định bật Giữ ảnh/video trong vùng an toàn phía trên chân trang. Preview và video xuất dùng cùng vùng.
+  Ảnh/video và chuyển động được giới hạn trong vùng này. Chọn Giữ trọn nếu muốn thấy toàn bộ nội dung;
+  Phủ kín/tự chỉnh vẫn có thể cắt bớt mép theo lựa chọn của bạn.
+- Tự động chừa chỗ theo chiều cao chân trang. Mẫu ảnh phủ toàn khung được đặt làm nền, mặc định chừa
+  25% phía dưới. Nếu artwork của mẫu cao/thấp khác, chọn Tự chỉnh chiều cao vùng chân trang và kéo thanh
+  cho vừa. Tool không tự nhận diện chữ/logo bên trong ảnh mẫu. Có thể tắt bảo vệ để bố trí tự do.
+- Nhạc nền → Nhạc của bạn → tải file: nhạc được chọn và tự lưu vào Kho nhạc của bạn.
+  Lần sau bấm bài trong kho để dùng lại; không cần tải lại. File giống nhau được lưu một lần.
+  Giới hạn: 25 MB/bài, 1 giây–10 phút/bài, tối đa 50 bài / 250 MB. Xóa bài trong kho không gỡ nhạc
+  đã chọn khỏi dự án đang mở. Nếu kho đầy/lưu thất bại, nhạc vẫn dùng được trong dự án hiện tại.
+- Kho nhạc/mẫu mới nằm ở data/browser cạnh tool. Mở bằng EXE và giữ nguyên data khi cập nhật.
+  JSON giữ nhạc đang chọn, có thể mở trên máy khác để nhập lại. Kho ở website/hồ sơ thường cũ không tự đồng bộ.
+
+QUÂN BẢN TIN 1.5.0 — MỞ BẰNG EXE, DỮ LIỆU CẠNH TOOL
+- Giải nén toàn bộ ZIP vào thư mục có quyền ghi, ví dụ D:\QuanBanTin. Bấm Quân Bản Tin.exe.
+  Giữ EXE cạnh runtime/, app/, web/. Không cần chạy BAT hoặc giữ cửa sổ CMD.
+- Giao diện mở thành cửa sổ ứng dụng riêng dùng Chrome/Edge đã có trên máy; không có thanh địa chỉ.
+  Đây là launcher EXE cho ứng dụng cục bộ, không phải bản đóng gói toàn bộ trình duyệt/AI thành một EXE duy nhất.
+- Lưu dự án/video trước khi thoát. Bấm Thoát phần mềm để dừng bộ chạy và AI ngay.
+  Nếu chỉ bấm X đóng cửa sổ, bộ chạy tự dừng sau khoảng 3 phút không có cửa sổ; tác vụ AI đang chạy được chờ xong.
+- data/browser: hồ sơ riêng chứa kho mẫu, kho nhạc, lựa chọn giọng và bản nháp. data/browser-cache: cache giao diện.
+  Mở lại qua EXE, không mở bằng hồ sơ trình duyệt thường, để thấy đúng kho đã lưu.
+- data/ai: môi trường AI, mô hình, giọng clone, cache và log. data/temp: tệp tạm. data/logs/desktop.log: lỗi mở app.
+- data/owner hoặc data/client: trạng thái phiên/kích hoạt. Bản chủ có thêm data/license-server để lưu quản trị.
+  KHÔNG gửi toàn bộ thư mục chủ hoặc data cho người mua. Dùng nút tạo ZIP khách trong quản trị như hướng dẫn.
+- Kho nhạc/mẫu trong hồ sơ trình duyệt cũ ở C không được sao chép cả tài khoản trình duyệt sang đây.
+  Trước đổi bản, dùng Lưu dự án ở bản cũ rồi Mở dự án JSON trong bản mới: mẫu trong dự án và nhạc đang chọn
+  sẽ được nhập lại. Các bài nhạc khác của kho cũ cần tải lại một lần. Bản cũ và dữ liệu gốc vẫn còn nguyên.
+- Hệ điều hành/Python/Chrome đã cài ở C vẫn giữ nguyên. Tool chuyển các thư mục cài thư viện và dữ liệu của mình
+  sang thư mục giải nén; Windows/trình duyệt có thể vẫn tạo thông tin hệ thống riêng.
+- Đã kiểm tra đường dẫn/copy dữ liệu/cache, manifest sau đổi thư mục, SQLite WAL, HTTP thoát và bản quyền,
+  cấu trúc PE x64 GUI của EXE, TypeScript và các luồng React. Chưa chạy EXE hay codec trực tiếp trên Windows thật.
+
+
+INTRO BẢN TIN NÓNG — BẢN 1.8.0 (20/10/2026)
+- Phong cách → Intro bản tin nóng. Mặc định 3 đoạn × 2 giây, dùng tư liệu bản tin nếu có hoặc đồ họa thay thế.
+- Thêm/thay clip của bạn, cắt đoạn, crop, xoay, giữ hình cuối/lặp. Không giới hạn số đoạn intro; mỗi đoạn 0,5–15 giây.
+- Kéo thả/mũi tên để đảo đoạn, chỉnh thời lượng, hoặc đặt lại 6 giây. Có thể bật/tắt chữ riêng cho intro.
+- Intro không có âm hiệu hoặc tiếng gốc riêng. Lời đọc bản tin và nhạc nền đã chọn bắt đầu ngay giây 0.
+- Phụ đề tính theo mốc voice từ giây 0, hiện cả trong intro và phần bản tin. SRT không cộng thời lượng intro.
+- Xem intro phát lời đọc đã nạp nếu có; chưa có lời đọc vẫn xem hình được. Không tự tạo giọng khi chỉ xem intro.
+- Chân trang trong intro chọn riêng. Chân trang/tiêu đề/đoạn mẫu phần bản tin vẫn tính mốc sau intro.
+- Chế độ tự khớp: phần cảnh còn lại lấp đầy thời gian voice sau intro, tổng video bằng độ dài voice.
+- Video tối đa 300 giây. Nếu lời đọc ngắn hơn intro, rút ngắn hoặc tắt intro.
+- Dự án JSON bản 8 lưu thiết lập, tư liệu và giọng riêng. Dự án 1–5 mở lại tắt intro như trước; bản 6 dùng đồng hồ voice từ giây 0.
+- Cập nhật: thoát tool, giữ thư mục data, giải nén bản mới và mở Quân Bản Tin.exe. Không cần tải lại mô hình.
+- Đã kiểm tra TypeScript/React, PCM, pixel canvas hai tỷ lệ và điều phối xuất; chưa chạy codec/EXE trên Windows thật.
+
+CHỌN CHÂN TRANG TRONG INTRO & HIỆU ỨNG CLIP — BẢN 1.8.0
+- Phong cách → Intro bản tin nóng → Mẫu chân trang trong intro:
+  Dùng mẫu bản tin đang chọn, chọn riêng một mẫu trong kho, hoặc Không hiện chân trang trong intro.
+  Nút Mở kho mẫu để thêm / sửa mở kho mẫu hiện có; sau khi tạo mẫu, chọn tên mẫu ở mục intro.
+- Intro không còn tự ẩn chân trang. Chọn chân trang intro độc lập với chế độ chân trang sau intro:
+  có thể hiện trong intro rồi ẩn phần sau, hoặc ngược lại, hoặc dùng hai mẫu khác nhau.
+- Mặc định intro lấy ảnh/video bản tin cho các đoạn chưa tải clip riêng, theo thứ tự tư liệu.
+  Trong mỗi đoạn có thể chọn Tư liệu bản tin cụ thể hoặc Chỉ dùng đồ họa có sẵn. Tải clip riêng vẫn dùng được.
+  Tiếng gốc của tư liệu bản tin dùng lại cho intro mặc định tắt; không làm đổi tiếng của clip trong phần bản tin.
+- 8 lựa chọn hiệu ứng: dồn nhịp/zoom mạnh, lướt nhanh, quét chéo, zoom tiến chậm, zoom lùi chậm,
+  rung nhẹ khi vào đoạn, đen trắng tương phản, hoặc không hiệu ứng. Hiệu ứng áp dụng cho clip;
+  chân trang/logo/chữ của mẫu giữ bố cục và màu. Nếu cần, vùng an toàn giữ clip phía trên chân trang.
+- Chữ riêng trên clip intro mặc định tắt để bạn dùng tư liệu + mẫu chân trang và chỉ thêm hiệu ứng.
+  Bật Thêm chữ riêng trên clip intro nếu muốn nhập chữ cho từng đoạn. Chữ của template vẫn chỉnh bằng kho mẫu.
+- Intro vẫn mặc định 3 đoạn × 2 giây = 6 giây, có thể thêm/cắt/crop/đảo/chỉnh thời lượng như bản trước.
+  Dự án JSON bản 6 lưu thêm lựa chọn chân trang intro, tư liệu nguồn, hiệu ứng và chế độ chữ.
+- Lời đọc và mốc phụ đề tính từ giây 0, xuyên suốt intro. Chân trang phần bản tin sau intro vẫn chỉnh tại Thiết lập mẫu đang xem.
+- Bản 1.8.0 thay hướng dẫn cũ “mẫu không hiện trong intro”: bạn tự chọn có hiện hay không.
+- Đã kiểm tra pixel thật cho cả 9:16/16:9 với 8 hiệu ứng, mẫu dùng chung/mẫu riêng/ẩn/ảnh toàn khung,
+  nguồn tư liệu, lưu/mở dự án và gói khách. Chưa kiểm thử trực tiếp EXE/codec Windows.
+
+XUẤT NHIỀU MẪU VỚI GIỌNG RIÊNG — 1.8.0
+- Chọn từ hai mẫu trong kho. Phần Giọng đọc riêng cho từng video xuất hiện ở Phong cách và Cảnh & giọng đọc.
+- Mỗi mẫu: dùng lời đọc chung, chọn giọng VieNeu/clone đã lưu và tốc độ riêng, hoặc tải file đọc riêng (tối đa 20 MB, 300 giây).
+- Bấm Tạo và nghe lời đọc để kiểm tra trước. Nếu chưa tạo, tool tạo khi xuất. Đổi kịch bản/giọng/tốc độ sẽ tạo lại, không dùng nhầm bản thu cũ.
+- Phụ đề mỗi video căn từ đúng bản thu bằng Whisper trên máy, giữ kiểu chữ/kiểu sub của mẫu tương ứng. Cần VieNeu sẵn sàng để tự căn; có thể tắt phụ đề.
+- Xuất nhiều mẫu tự đảo tư liệu và phối chuyển động/chuyển cảnh/hiệu ứng intro riêng. Nội dung kịch bản không đảo. Không thay đổi thứ tự trong dự án gốc.
+- Tool ưu tiên thứ tự khác nhau trong các cảnh thực sự xuất hiện; khi hết số hoán vị có thể có của ít tư liệu, thứ tự sẽ lặp nhưng phối hiệu ứng tiếp tục thay đổi.
+- Lời đọc bắt đầu ngay giây 0, không bị lùi sau intro. Intro không có âm hiệu hay tiếng gốc riêng. Phụ đề chạy theo voice cả trong intro.
+- Chế độ tự khớp chia phần thời gian còn lại sau intro cho các cảnh; tổng video bằng độ dài voice. Nếu voice ngắn hơn intro, rút ngắn hoặc tắt intro.
+- Thời lượng chỉnh tay vẫn được giữ với lời đọc chung; tool báo nếu làm cắt mất lời đọc. Giọng riêng luôn khớp lại theo bản thu riêng.
+- Kết quả hiển thị đúng thời lượng/giọng từng video. Chọn video để tải SRT tương ứng; ZIP chứa video và SRT cùng tên.
+- Dự án JSON phiên bản 8 lưu cả thiết lập giọng riêng, bản thu và tốc độ; vẫn mở được dự án phiên bản 1–7.
+- Cập nhật: đóng tool, giải nén bản mới, giữ và chuyển nguyên thư mục data cạnh Quân Bản Tin.exe. Không xóa data hoặc dùng hai bản cùng lúc.
+
+KỊCH BẢN RIÊNG, PREVIEW VIDEO VÀ 100 HIỆU ỨNG — 1.8.0
+- Chọn mẫu tại Phong cách. Thẻ Kịch bản & giọng đọc từng video hỗ trợ một hoặc nhiều mẫu.
+- Mỗi mẫu: chọn Viết kịch bản riêng, nhập Tiêu đề riêng và Nội dung riêng (không giới hạn ký tự/mẫu). Có thể dùng kịch bản chung.
+- Kịch bản riêng tạo voice riêng bằng giọng/tốc độ của mẫu hoặc dùng file đọc riêng. Không ghép nhầm lời đọc chung vào nội dung khác.
+- Đổi nội dung sẽ bỏ bản thu cũ của mẫu; tạo lại voice hoặc tải bản thu mới. Đổi tiêu đề giữ nguyên voice.
+- Khi xuất, từng mẫu tự chia cảnh từ kịch bản riêng, khớp thời lượng với voice, căn sub từ bản thu và đặt tên video theo tiêu đề riêng.
+- Có thể để trống kịch bản chung khi mọi mẫu đã có kịch bản riêng. Dùng một mẫu vẫn hỗ trợ nội dung/giọng riêng.
+- Bấm ảnh/thẻ mẫu trong kho để chọn và xem video ngay; nút Xem video dùng được trong Quản lý mẫu.
+- Khung Xem video theo mẫu ở bên phải và nút Xem video tại từng mẫu cho chọn lại bất cứ mẫu nào. Có phát, dừng, kéo mốc xem và tắt/bật tiếng.
+- Chưa tạo voice: preview chuyển động theo thời lượng ước tính, không tự tạo voice khi chỉ chọn mẫu. Tạo voice/tải file để preview âm thanh chính xác.
+- Có voice và VieNeu sẵn sàng: bấm Phát thử để căn sub từ đúng audio. Chưa có kết nối căn sub vẫn xem hình/âm thanh hiện có.
+- Preview và xuất dùng cùng thứ tự ảnh, hiệu ứng và cách đặt tư liệu. Đảo lại tư liệu & hiệu ứng các mẫu khi muốn một phương án mới.
+- Thêm 100 biến thể chuyển động: phóng vào, thu ra, lia bốn hướng, trượt chéo, quỹ đạo; khác đường đi, biên độ và nhịp chuyển động. Có thể chọn tay ở Hiệu ứng hình ảnh hoặc từng cảnh.
+- Xuất nhiều mẫu tự phân hiệu ứng theo từng ID tư liệu: cùng một ảnh/video nhận hiệu ứng khác nhau giữa các mẫu. Hỗ trợ tối đa 30 mẫu nên không hết bộ 100 hiệu ứng trong một đợt.
+- Tư liệu lặp lại nhiều cảnh trong cùng một mẫu dùng cùng hiệu ứng để nhất quán; hiệu ứng giữa các mẫu được đổi. Intro dùng ảnh/video cũng hỗ trợ bộ mới.
+- Ảnh & video hoặc Phong cách → bật/tắt Tự phối Giữ trọn / Phủ kín. Chỉ tự đổi khi xuất nhiều mẫu; tắt để giữ cách đặt thủ công.
+- Cùng một tư liệu luân phiên hai cách đặt giữa các mẫu; chỉ có hai cách nên từ mẫu thứ ba sẽ có lặp lại cách đặt. Hiệu ứng chuyển động vẫn tiếp tục đổi.
+- Lưu dự án JSON 8 giữ kịch bản/tiêu đề riêng, giọng, tốc độ, voice, trạng thái tự phối khung hình và phương án ngẫu nhiên. Dự án cũ 1–7 vẫn mở được.
+- Cập nhật: đóng tool, giữ nguyên data, giải nén bản mới rồi mở Quân Bản Tin.exe. Dữ liệu AI tiếp tục ở thư mục tool.
+- Kiểm tra bằng TypeScript/React, PCM, pixel canvas, điều phối xuất và gói khách hàng; chưa chạy EXE/codec/âm thanh trên Windows thật.
+
+GIAO DIỆN & CHỮ RIÊNG CHO TỪNG MẪU — 1.9.0
+- Thanh trên cùng → Giao diện: chọn 6 bảng màu, màu tùy chọn, chế độ Sáng hoặc Tối.
+  Màu giao diện được nhớ trên máy này, không thay màu nội dung video.
+- Giao diện → Đặt lại giao diện mặc định: về màu xanh ban đầu, bước Kịch bản,
+  dừng preview và thu gọn các khung chỉnh sửa. Không xóa nội dung dự án, ảnh/video,
+  voice, nhạc, kho mẫu hoặc video đã dựng. Bản 1.10 đặt lại cả bố cục và kiểu chữ.
+- Phong cách → chọn mẫu → Kịch bản & giọng đọc từng video → mở tên mẫu →
+  Chỉnh chữ riêng: chỉnh tiêu đề, nhãn bản tin, tên kênh, phụ đề độc lập cho mẫu đó.
+  Có font, tải font, cỡ chữ, màu, nền, viền, bóng, căn lề, độ đậm/nghiêng,
+  vị trí, độ rộng, góc xoay, giãn chữ/dòng và kiểu phụ đề theo voice.
+  Chỉnh chữ tự chuyển preview sang mẫu đó và áp dụng khi xuất video.
+  Có thể chỉnh ở mục Cảnh & giọng đọc với cùng các mẫu đã chọn.
+- Lưu dự án giữ chữ riêng và font (JSON phiên bản 9, vẫn mở được dự án phiên bản 1–8).
+  Lưu chữ vào kho mẫu để dùng thiết lập này cho các bản tin sau.
+  Dùng lại chữ gốc của mẫu chỉ bỏ tùy chỉnh chữ riêng, giữ kịch bản và voice riêng.
+  Đổi chữ/màu giao diện không phải tạo lại giọng đọc đã có.
+- Cập nhật: đóng tool, giữ nguyên thư mục data cạnh EXE, chép các file mới vào thư mục
+  đang dùng. Không xóa data, không giải nén bản chủ để gửi cho khách; tạo gói khách từ quản trị.
+
+RESET BỐ CỤC, CHỮ/CHÂN TRANG RIÊNG VÀ CHUYỂN ĐỘNG ÊM — 1.10.0
+1. Thanh trên cùng có nút Đặt lại bố cục, hoặc Giao diện → Đặt lại giao diện mặc định.
+   Đặt lại màu giao diện, khung chỉnh sửa, kiểu/cỡ/vị trí chữ, vị trí/crop/xoay tư liệu,
+   nền blur và hiệu ứng. Các mẫu trở về bố cục gốc đang lưu trong kho mẫu.
+   Giữ kịch bản, nội dung chữ đã viết, file tư liệu, đoạn video đã cắt, thời lượng cảnh,
+   voice đã tạo, nhạc và các mẫu đã lưu. Video đã dựng vẫn có thể lưu lại.
+   Muốn giữ các tinh chỉnh trước khi reset để dùng lại, Lưu dự án trước khi bấm nút.
+2. Phong cách hoặc Cảnh & giọng đọc → mở video/mẫu → Chỉnh chữ riêng.
+   Có ô Chữ tiêu đề để sửa ngay nội dung hiện trên video, không cần đổi sang kịch bản riêng.
+   Chọn Tiêu đề / Nhãn bản tin / Tên kênh / Phụ đề, chỉnh font, cỡ, màu, căn lề và vị trí.
+   Bấm Kéo chữ trực tiếp trên video hoặc chọn lớp chữ trong preview để kéo khung chữ,
+   kéo góc để đổi cỡ và độ rộng. Mỗi video dùng khung và thiết lập riêng.
+   Preview giữ nguyên vị trí đang chỉnh, không quay về intro sau mỗi lần kéo/đổi chữ.
+   Bộ Chỉnh chữ theo ý bạn phía trên cũng chỉnh đúng video đang xem, không chỉ video đầu.
+   Phụ đề cần có voice đã căn hoặc SRT để hiện chữ thật. Kiểu phụ đề vẫn khớp theo voice.
+3. Mỗi video có Chân trang riêng: chọn Ẩn / Chỉ đầu nội dung / Suốt phần bản tin,
+   thời gian hiện, cách đặt, chiều rộng, cách mép và vùng an toàn.
+   Ở phần Thiết lập chân trang cho video có thể chọn video bất kỳ để xem/chỉnh.
+   Chân trang trong intro vẫn được chọn riêng theo chức năng hiện có.
+   Lưu dự án giữ thiết lập riêng từng video (JSON10; vẫn mở JSON1–9).
+4. Chuyển động chỉ áp dụng cho ảnh tĩnh; video không được thêm zoom/lia/rung tự động,
+   kể cả intro. Hiệu ứng clip video được khóa ở giữ nguyên trong giao diện.
+   Ảnh chuyển động nhẹ gần tâm vùng an toàn; ảnh thời lượng ngắn tự giảm quãng trôi và zoom.
+   Vẫn có 100 hiệu ứng ảnh và phân bổ khác nhau giữa các mẫu khi xuất hàng loạt.
+5. Cập nhật: đóng ứng dụng, giữ nguyên thư mục data cạnh EXE và chép bản mới vào thư mục
+   đang dùng. Không xóa data. Chỉ chủ tool giữ bản quản trị; tạo gói khách từ quản trị.
+Đã kiểm tra thao tác React, kéo/resize, canvas, lưu/mở dự án và gói khách. Chưa thử trực tiếp
+trên Windows với codec thực tế hoặc tải mô hình VieNeu ở máy người dùng.
+
+PHÁT VIDEO LIÊN TỤC VÀ CÂN CHUYỂN ĐỘNG — 1.10.1 (22/10/2026)
+- Xem trước đọc khung hình liên tiếp, giảm giải mã lặp từ keyframe; preview 960p,
+  xuất vẫn đọc tới 1920p. Tua/lặp/chuyển cảnh dùng cùng cơ chế cho từng clip.
+- Clip mới và dự án không lưu lựa chọn playback mặc định lặp khi cảnh dài hơn
+  đoạn đã cắt. Giữ nguyên tốc độ video và mốc lời đọc/phụ đề; tiếng gốc lặp theo.
+- Dự án cũ đã lưu Giữ hình cuối vẫn giữ lựa chọn đó. Vào Ảnh & video, bấm
+  Bật phát liên tục cho tất cả video ngắn để đổi cả tư liệu và clip intro.
+  Hoặc Chỉnh sửa từng video → Khi cảnh dài hơn đoạn video → Lặp lại.
+- Chỉ ảnh được thêm chuyển động. Tăng biên độ vừa phải, di chuyển theo kích
+  thước vùng hiển thị; ảnh dài đổi hướng nhẹ theo nhịp 10 giây mỗi chiều.
+- Giữ vùng an toàn và thiết lập riêng từng mẫu. Cập nhật: đóng tool, giữ data,
+  giải nén bản mới rồi mở Quân Bản Tin.exe.
+- Đã kiểm tra TypeScript/build, logic luồng khung hình/seek/loop bằng codec mock,
+  âm thanh gốc, raster chuyển động/vùng an toàn, UI và gói phát hành.
+  Chưa kiểm tra codec native, phát/loa và EXE trên Windows thực tế.
+
+TẠO KỊCH BẢN VÀ LẤY ẢNH TỪ LINK — 1.11.0 (22/10/2026)
+- Vào Kịch bản → Từ link bài viết → dán link → Lấy bài, lưu ảnh & tạo kịch bản.
+- Mặc định thu thập ảnh tìm thấy trên toàn trang; có tùy chọn ưu tiên ảnh bài.
+  Lấy ảnh lazy-load, chọn srcset lớn; loại trùng URL/nội dung và báo ảnh lỗi.
+- Chế độ Tóm tắt trên máy không cần khóa: chọn và sắp lại các câu của nguồn.
+  Chế độ Viết lại bằng AI cần nhập API của bạn trong Cấu hình AI. Địa chỉ mặc
+  định OpenAI; có thể đổi địa chỉ HTTPS tương thích Chat Completions và mô hình.
+  Bài nguồn được gửi tới API đã chọn; khóa không được đưa vào JSON dự án/ZIP.
+- Xem/sửa đề xuất trước khi Áp dụng. Chọn kịch bản chung hoặc một mẫu riêng.
+  Đổi kịch bản sẽ bỏ voice cũ của nội dung đó để tránh lời đọc không khớp.
+- Toàn bộ ảnh tải được, nguồn và kịch bản lưu ở data/articles cạnh EXE.
+  Mở lại qua Kho bài đã lấy; tải cả bộ bằng Lưu toàn bộ ảnh & nguồn thành ZIP.
+  Dự án không giới hạn số ảnh/video; chọn ảnh dùng trong video, kho/ZIP giữ ảnh
+  còn lại. API key nằm riêng trong data/writer/settings.json, không gửi cho khách.
+- Tối đa 300 đường dẫn ảnh/lần, 15 MB mỗi ảnh và 180 MB tổng ảnh; có báo những
+  ảnh chưa lấy được. Chỉ đọc HTML/ảnh công khai; không vượt đăng nhập, CAPTCHA
+  hay tường phí. Trang phụ thuộc JavaScript có thể không đọc đủ. Khi bị chặn,
+  dán nội dung nguồn bổ sung để viết kịch bản; chế độ dán chưa lấy ảnh của web.
+- JSON dự án tiếp tục phiên bản 10; lưu thêm studio.articleSources, vẫn đọc
+  dự án cũ. Ảnh được chọn được nhúng vào JSON, không phụ thuộc link web khi mở lại.
+- Đã kiểm tra HTML/ảnh/API bằng fixture, routes HTTP thật trên localhost, UI,
+  key privacy, project save/reopen và gói chủ/khách. DNS ngoài môi trường thử
+  không dùng được nên chưa xác nhận tải bài/ảnh từ website trực tiếp. Chưa gọi
+  API trả phí bằng khóa thật hoặc chạy EXE trên Windows.
+
+KỊCH BẢN DÀI VÀ MỞ LẠI PHẦN MỀM — 1.12.0 (22/10/2026)
+- Bỏ trần 5.000 ký tự ở kịch bản chung, từng mẫu, nhập TXT và đề xuất từ link.
+  Bỏ chặn độ dài script khi lưu/mở dự án; giữ toàn bộ nội dung và cache voice.
+- Không chặn tổng thời lượng video ở 5 phút. Voice dài chia thành các yêu cầu
+  ngắn, ghép WAV theo đúng thứ tự. Phụ đề chia âm thanh thành từng phần tối đa
+  240 giây, cộng mốc thời gian để khớp toàn bộ bản thu.
+- Gỡ chặn 100 cảnh/3.000 dòng sub của dự án dài; không cắt cache key của script.
+  Các giới hạn theo dung lượng file dự án/tư liệu vẫn được giữ. Văn bản không
+  có trần ký tự trong app; dung lượng RAM/ổ đĩa, thời gian và khả năng mô hình
+  vẫn quyết định độ dài thực tế xử lý được. AI viết từ link vẫn theo thời lượng
+  đã chọn và giới hạn của nhà cung cấp API, không phải tạo đầu ra vô hạn.
+- Chỉ cho một bộ chạy desktop trên cùng thư mục; khóa tự nhả khi tiến trình dừng.
+  Windows dùng cổng độc quyền để tránh hai bộ chạy dùng trùng cổng. Lần mở lại
+  nối vào bộ chạy còn hoạt động; cookie tách theo cổng. Địa chỉ khởi động giữ
+  hiệu lực sau khi tắt/mở bộ chạy, còn cookie phiên được đổi mỗi lần chạy mới.
+- Khi cập nhật từ bản cũ, nên khởi động lại máy một lần để dừng các bộ chạy cũ
+  còn ẩn, giữ data rồi giải nén cập nhật. Mở Quân Bản Tin.exe, không dùng địa chỉ
+  cũ đã ghim. Không phải cài lại mô hình hoặc xóa dữ liệu.
+- Đã kiểm tra >50.000 ký tự, TXT/JSON, >100 cảnh, voice 610 giây và mốc sub nhiều
+  đoạn (model/audio decode giả lập); kiểm tra HTTP thật ba vòng shutdown/start,
+  mở lại phiên đang chạy và cookie hai cổng. Cờ socket Windows được test mock;
+  chưa chạy trực tiếp EXE/cửa sổ/model thật trên Windows.
+
+ẢNH/VIDEO VÀ MÀU CHỮ ĐƯỢC CHỌN — 1.13.0 (23/10/2026)
+- Không chặn số lượng ảnh/video tải lên, thả vào hoặc chọn từ Kho bài; không cắt
+  danh sách khi lưu/mở dự án. Intro cũng không giới hạn số clip hoặc tổng giây.
+  Tải tư liệu lần lượt, có tiến độ để nhiều tệp không phải giải mã cùng lúc.
+- Bôi chọn chữ trong ô tiêu đề/tên kênh/nhãn hoặc Nội dung phụ đề, sau đó chọn
+  Màu phần bôi chọn. Có thể tô nhiều đoạn nhiều màu; Bỏ màu đoạn chọn trả về màu
+  chung; Xóa màu riêng bỏ các màu riêng. Dòng xem màu hiện ngay dưới ô nhập.
+- Chữ riêng từng mẫu và nguồn/ngày trong kho mẫu cũng có chọn màu cho đoạn chữ.
+  Màu lưu trong dự án/kho mẫu, dùng chung khi preview và dựng video; chữ tiếng
+  Việt, xuống dòng, đổi hoa/thường vẫn đúng vị trí. Đoạn tô tay giữ màu khi dùng
+  karaoke. Chỉnh chữ phụ đề làm mất mốc từng từ cũ; chỉ đổi màu giữ mốc voice.
+- Không bỏ các giới hạn dung lượng: 15 MB/ảnh, 100 MB/video, tổng tư liệu nhúng
+  dự án 180 MB, file JSON tối đa 300 MB. Mở quá nhiều tư liệu phụ thuộc RAM máy.
+  Kho mẫu vẫn 30 mẫu; lấy ảnh web vẫn tối đa 300 đường dẫn/lần và 180 MB tổng.
+- Đã kiểm tra 120 tư liệu (72 tệp/lần), 38 intro, chọn 45 ảnh nguồn, màu 10 từ,
+  lưu/mở lại và pixel canvas thật. IO/decode/voice/codec trong Home dùng mock;
+  chưa chạy Windows hoặc hộp chọn màu native/encode codec thực.
