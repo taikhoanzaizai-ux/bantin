@@ -65,6 +65,25 @@ class Handler(BaseHTTPRequestHandler):
             else:self.send(401,{'message':'Phiên kết nối đã cũ. Mở lại Quân Bản Tin.exe.'})
             return
         self.server.last_seen=time.monotonic()
+        if url.path=='/_desktop/tin-nong':
+            if not self.server.licensing.check()['ok']:
+                self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
+            try:
+                with (ROOT/'data'/'tin-nong-inbox.json').open('rb') as handle:
+                    raw=handle.read(1048577)
+                if len(raw)>1048576:raise ValueError('Kịch bản vượt giới hạn.')
+                entry=json.loads(raw)
+                project=entry['project']
+                if not isinstance(entry['id'],str) or not all(isinstance(project.get(k),str) for k in ('title','script')):
+                    raise ValueError('Kịch bản không hợp lệ.')
+                clean={'version':10,'title':project['title'][:120],'script':project['script'],
+                       'pictures':[],'scenes':[],'captions':True,'width':1080,'studio':{'aspect':'portrait'}}
+                self.send(200,{'id':entry['id'],'project':clean})
+            except FileNotFoundError:
+                self.send(200,{})
+            except (OSError,ValueError,TypeError,KeyError,AttributeError):
+                self.send(400,{'message':'Không đọc được kịch bản Tin Nóng.'})
+            return
         if url.path=='/_desktop/status':
             result=self.server.licensing.check();result['contact']=self.server.contact;result['desktop_protocol']='ban-tin-desktop-v1';result['csrf']=self.server.csrf;self.send(200,result);return
         if url.path.startswith('/_desktop/article/'):
