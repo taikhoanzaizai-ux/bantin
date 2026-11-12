@@ -173,6 +173,23 @@ class Handler(BaseHTTPRequestHandler):
             except (ValueError,TypeError,OSError) as e:self.send(400,{'message':str(e)[:800]})
             finally:self.server.pending-=1;self.server.last_seen=time.monotonic()
             return
+        if self.path=='/_desktop/github-update/install':
+            if not self.server.licensing.check()['ok']:
+                self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
+            if getattr(self.server,'github_update_running',False):
+                self.send(409,{'message':'Đang cập nhật.'});return
+            self.server.github_update_running=True
+            try:
+                from github_update import prepare_update
+                prepare_update(ROOT)
+            except Exception as error:
+                self.server.github_update_running=False
+                self.send(502,{'message':f'Cập nhật thất bại: {error}'});return
+            try:
+                self.send(200,{'ok':True})
+            finally:
+                threading.Thread(target=self.server.shutdown,daemon=True).start()
+            return
         if self.path=='/_desktop/quit':
             self.send(200,{'ok':True});threading.Thread(target=self.server.shutdown,daemon=True).start();return
         if self.path in ('/_desktop/voice/setup','/_desktop/voice/reconnect'):

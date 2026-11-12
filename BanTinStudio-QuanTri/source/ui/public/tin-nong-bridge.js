@@ -67,8 +67,18 @@
       if (!response.ok) throw new Error(info.message || 'Không kiểm tra được phiên bản.');
       if (!info.available) {
         alert('Bạn đang dùng bản mới nhất: ' + info.current);
-      } else if (confirm('Có bản mới: ' + info.latest + '. Tải ZIP từ GitHub?')) {
-        window.location.assign('https://github.com/taikhoanzaizai-ux/bantin/archive/refs/heads/main.zip');
+      } else if (confirm('Có bản mới: ' + info.latest + '. Hãy lưu công việc trước. Tải, cài và khởi động lại ngay?')) {
+        update.textContent = 'Đang tải bản cập nhật…';
+        const session = await fetch('/_desktop/status', {cache:'no-store'});
+        const status = await session.json();
+        if (!session.ok || !status.csrf) throw new Error('Hãy mở lại Quân Bản Tin rồi thử cập nhật.');
+        const response = await fetch('/_desktop/github-update/install', {
+          method:'POST', headers:{'X-Studio-CSRF':status.csrf},
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.message || 'Không cài được bản cập nhật.');
+        update.textContent = 'Đang khởi động lại…';
+        window.close();
       }
     } catch (error) {
       alert(error.message);
