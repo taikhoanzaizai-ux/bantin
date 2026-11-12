@@ -86,6 +86,11 @@ class Handler(BaseHTTPRequestHandler):
             except (OSError,ValueError,IndexError):
                 self.send(502,{'message':'Không kiểm tra được phiên bản trên GitHub.'})
             return
+        if url.path=='/_desktop/news-rss':
+            if not self.server.licensing.check()['ok']:
+                self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
+            from news_rss import latest_news
+            self.send(200,latest_news(q.get('refresh')==['1']));return
         if url.path=='/_desktop/tin-nong':
             if not self.server.licensing.check()['ok']:
                 self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
