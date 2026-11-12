@@ -86,6 +86,19 @@ class Handler(BaseHTTPRequestHandler):
             except (OSError,ValueError,IndexError):
                 self.send(502,{'message':'Không kiểm tra được phiên bản trên GitHub.'})
             return
+        if url.path in ('/_desktop/media-suggest','/_desktop/media-suggest/file'):
+            if not self.server.licensing.check()['ok']:
+                self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
+            from media_suggest import download_media,search_media
+            try:
+                if url.path.endswith('/file'):
+                    data,mime=download_media(q.get('url',[''])[0])
+                    self.send(200,data,mime)
+                else:
+                    self.send(200,search_media(q.get('q',[''])[0],q.get('kind',['image'])[0]))
+            except (ArticleError,OSError,ValueError) as error:
+                self.send(502,{'message':str(error)[:300]})
+            return
         if url.path=='/_desktop/news-rss':
             if not self.server.licensing.check()['ok']:
                 self.send(403,{'message':'Phiên sử dụng chưa hoạt động.'});return
