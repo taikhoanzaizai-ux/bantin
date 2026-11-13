@@ -259,8 +259,10 @@
     Object.getOwnPropertyDescriptor(el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(el,value);
     el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));
   }
-  async function autoVideo(manual = null, queued = null) {
+  async function autoVideo(manual = null, queued = null, queuedEngine = null) {
     if(running||(!manual&&(!makeVideoAuto.checked||(!queued&&(!active||trendMode)))))return;
+    const selectedEngine=queuedEngine??document.querySelector('select[aria-label="Cách viết kịch bản từ link"]')?.value;
+    const engine=selectedEngine==='ai'||(!selectedEngine&&!manual)?'ai':'local';
     const log=readLog();
     const seen=new Set(log.urls);
     const candidates=articles.filter(group=>group.score>=75).flatMap(group=>{
@@ -293,12 +295,14 @@
       const session=await csrfResponse.json();
       check();
       if(!csrfResponse.ok||!session.csrf)throw Error('Hãy mở lại Quân Bản Tin.');
+      if(engine==='ai'){
       const configResponse=await fetch('/_desktop/article/settings',{cache:'no-store'});
       const config=await configResponse.json();
       check();
       if(!configResponse.ok||!config.has_key)throw Error('Hãy lưu khóa API trong Thiết lập API / model.');
+      }
       if(!queued){
-        sessionStorage.setItem('qbt-auto-next',JSON.stringify({candidate,manual:!!manual,enabled:makeVideoAuto.checked,country:country.value,topic:topic.value}));
+        sessionStorage.setItem('qbt-auto-next',JSON.stringify({candidate,engine,manual:!!manual,enabled:makeVideoAuto.checked,country:country.value,topic:topic.value}));
         localStorage.removeItem('news-draft');
         location.reload();
         return;
@@ -310,17 +314,17 @@
       if(!mode||mode.disabled)throw Error('Không chọn được chế độ viết AI.');
       const pasted=importer.querySelector('textarea[aria-label="Nội dung nguồn dán bổ sung"]');
       if(pasted?.value.trim())throw Error('Ô nội dung nguồn đang có văn bản. Hãy mở dự án trống.');
-      setField(mode,'ai');
+      setField(mode,engine);
       await nextFrame();check();
       const loadButton=action(importer,'Lấy bài, lưu ảnh & tạo kịch bản');
       if(!loadButton||loadButton.disabled||field.value!==candidate.url)throw Error('Không thể bắt đầu lấy bài.');
-      report('Đang viết kịch bản: '+candidate.title);
+      report((engine==='ai'?'Đang viết kịch bản bằng AI: ':'Đang tóm tắt trên máy: ')+candidate.title);
       loadButton.click();
       const apply=await until(()=>{
         const button=action(importer,'Áp dụng vào dự án');
         const draft=importer.querySelector('textarea[aria-label="Kịch bản đề xuất từ link"]');
         return draft?.value.trim() && button && !button.disabled && button;
-      },240000,'Chưa tạo được kịch bản AI.',importer);
+      },240000,'Chưa tạo được kịch bản.',importer);
       const target=importer.querySelector('select[aria-label="Video nhận kịch bản từ link"]');
       if(target)setField(target,'shared');
       const checks=[...importer.querySelectorAll('.consent-row input[type=checkbox]')];
@@ -405,7 +409,7 @@
     let url;
     try{url=new URL(value);if(!['http:','https:'].includes(url.protocol))throw Error();}
     catch{report('Nhập link bài viết HTTP hoặc HTTPS trước.');return;}
-    if(confirm('Bắt đầu từ link đã nhập? Nội dung đang mở sẽ bị bỏ. Hãy lưu dự án trước nếu cần. Lượt gọi AI có thể tính phí.'))
+    if(confirm('Bắt đầu từ link đã nhập? Nội dung đang mở sẽ bị bỏ. Hãy lưu dự án trước nếu cần. Chế độ viết lại bằng AI có thể tính phí.'))
       void autoVideo({url:url.href,title:url.hostname});
   };
   let mounted = false;
@@ -434,7 +438,7 @@
           makeVideoAuto.checked=job.enabled;
           country.value=job.country;topic.value=job.topic;
           show(false);
-          void autoVideo(job.manual ? job.candidate : null,job.candidate);
+          void autoVideo(job.manual ? job.candidate : null,job.candidate,job.engine);
         }catch{show(true);}
       }else show(true);
     }
