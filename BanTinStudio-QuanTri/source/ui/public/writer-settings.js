@@ -27,10 +27,33 @@
   const save=make('button','Lưu cấu hình');save.type='button';save.className='button primary';
   const close=make('button','Đóng');close.type='button';close.className='button';close.onclick=()=>dialog.close();
   dialog.append(make('h2','API viết lại kịch bản'),field('Nhà cung cấp',provider),field('Địa chỉ API',base),field('Tên model',model),field('Khóa API',key),message,save,close);
+  const keyLink=make('a','Lấy khóa OpenAI');
+  keyLink.href='https://platform.openai.com/login?next=%2Fapi-keys';
+  keyLink.target='_blank';keyLink.rel='noopener noreferrer';keyLink.className='button';
+  const models=make('select');
+  models.setAttribute('aria-label','Model OpenAI tiết kiệm');
+  for(const [id,label] of [['','Chọn model OpenAI'],['gpt-5.4-mini','GPT-5.4 mini'],['gpt-5.4-nano','GPT-5.4 nano']]){
+    const option=make('option',label);option.value=id;models.append(option);
+  }
+  models.onchange=()=>{if(models.value && provider.value==='OpenAI')model.value=models.value;};
+  const chat=make('a','Mở ChatGPT');
+  chat.href='https://chatgpt.com/';chat.target='_blank';chat.rel='noopener noreferrer';chat.className='button';
+  const copy=make('button','Sao chép yêu cầu viết');
+  copy.type='button';copy.className='button';
+  copy.onclick=async()=>{
+    const link=document.getElementById('article-url')?.value.trim() || '';
+    const source=[...document.querySelectorAll('.article-importer textarea')].find(el=>el.getAttribute('aria-label')==='Nội dung nguồn dán bổ sung')?.value.trim() || '';
+    if(!link&&!source){message.textContent='Hãy nhập link hoặc dán nội dung bài trong mục Kịch bản trước.';return;}
+    const prompt=['Viết kịch bản bản tin tiếng Việt khoảng 1 phút từ nguồn dưới đây. Cho tôi tiêu đề, câu mở đầu thu hút và lời đọc. Chỉ dùng dữ kiện kiểm chứng được. Nếu không đọc được bài, hãy yêu cầu tôi dán nội dung.',link,source].filter(Boolean).join('\n\n');
+    try{await navigator.clipboard.writeText(prompt);message.textContent='Đã sao chép. Mở ChatGPT, dán yêu cầu rồi đưa lời đọc về ô Kịch bản.';}
+    catch{message.textContent='Không sao chép được. Bạn có thể mở ChatGPT và dán link bài trực tiếp.';}
+  };
+  dialog.append(keyLink,field('Model OpenAI',models),make('p','ChatGPT dùng gói chat của bạn. Chế độ API tính phí riêng.'),copy,chat);
   document.body.append(dialog);
   let original;
   provider.onchange=()=>{
     [base.value,model.value]=presets[provider.value];
+    models.value='';models.disabled=provider.value!=='OpenAI';
     key.value='';
     message.textContent='Nhập khóa tương ứng với nhà cung cấp đã chọn.';
   };
@@ -45,6 +68,7 @@
       if(!response.ok)throw new Error(original.message);
       base.value=original.base_url;model.value=original.model;
       provider.value=Object.keys(presets).find(name=>presets[name][0]===base.value)||'Tùy chỉnh';
+      models.disabled=provider.value!=='OpenAI';models.value=original.model;
       message.textContent=original.has_key?'Đã có khóa lưu trên máy. Để trống để giữ khóa của địa chỉ hiện tại.':'Chưa có khóa API.';
       save.disabled=false;
     }catch(error){message.textContent=error.message||'Không đọc được cấu hình.';}
