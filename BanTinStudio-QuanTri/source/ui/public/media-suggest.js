@@ -52,13 +52,29 @@
   results.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px';
   dialog.append(title,close,tools,status,results);
   document.body.append(dialog);
+  function suggestKeywords(headline,script) {
+    const stop=new Set('và của là có một những các đã đang sẽ được bị cho với về trong tại khi sau trước này đó theo từ thì như rằng vì để nhưng cũng rất mới nhất tin nóng'.split(' '));
+    const tokens=text=>text.match(/[\p{L}\p{N}]+(?:[-./][\p{L}\p{N}]+)*/gu)||[];
+    const key=word=>word.toLocaleLowerCase('vi');
+    const counts=new Map();
+    for(const word of tokens(script.slice(0,12000))){
+      const id=key(word);
+      counts.set(id,(counts.get(id)||0)+1);
+    }
+    const firstLine=script.split(/\n|(?<=[.!?])\s+/)[0]||'';
+    const source=tokens(headline||firstLine);
+    const words=source.map((word,index)=>({word,index,score:
+      (counts.get(key(word))||0)+(/^\p{Lu}/u.test(word)&&index>0?4:0)+(/\d/.test(word)?3:0)
+    })).filter(({word})=>!stop.has(key(word)));
+    const chosen=words.length>9 ? words.sort((a,b)=>b.score-a.score||a.index-b.index).slice(0,9).sort((a,b)=>a.index-b.index) : words;
+    return (chosen.map(({word})=>word).join(' ')||source.join(' ')).slice(0,180);
+  }
   trigger.onclick = () => {
     let draft = {};
     try { draft = JSON.parse(localStorage.getItem('news-draft') || '{}') || {}; } catch {}
     const headline = typeof draft.title === 'string' ? draft.title.trim() : '';
     const script = typeof draft.script === 'string' ? draft.script.trim() : '';
-    const firstLine = script.split(/\n|(?<=[.!?])\s+/)[0] || '';
-    keyword.value = (headline || firstLine).slice(0,180);
+    keyword.value = suggestKeywords(headline,script);
     results.replaceChildren();
     selected.clear();
     updateSelection();
