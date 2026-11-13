@@ -321,7 +321,7 @@
       const checks=[...importer.querySelectorAll('.consent-row input[type=checkbox]')];
       for(const box of checks)if(!box.checked)box.click();
       const images=[...importer.querySelectorAll('input[aria-label^="Chọn ảnh "]')];
-      images.slice(3).forEach(box=>{if(box.checked)box.click();});
+      images.forEach(box=>{if(!box.checked)box.click();});
       await nextFrame();check();
       apply.click();
       await until(()=>document.getElementById('script')?.value.trim()&&!apply.disabled,45000,'Không áp dụng được kịch bản.',importer);
@@ -343,7 +343,7 @@
             if(ext)transfer.items.add(new File([blob],item.title.slice(0,120)+ext,{type:blob.type}));
           }catch{}
         }
-      }catch(error){check();if(!images.length)throw error;}
+      }catch(error){check();if(!images.length)throw error;report('Không tìm thêm được ảnh Google. Dùng ảnh từ bài báo: '+error.message);}
       check();
       if(transfer.items.length){
         const input=document.querySelector('input[type="file"][multiple][accept^="image/jpeg"]');
