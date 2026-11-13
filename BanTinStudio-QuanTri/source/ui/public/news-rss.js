@@ -41,16 +41,41 @@
   refresh.textContent = 'Quét ngay';
   const social = make('div');
   social.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:8px 0';
+  const regions = {
+    'Việt Nam': ['VN','vi','tin nóng','Việt Nam'],
+    'Mỹ': ['US','en','breaking news','United States'],
+    'Hàn Quốc': ['KR','ko','최신 뉴스','한국'],
+    'Nhật Bản': ['JP','ja','最新ニュース','日本'],
+  };
   for (const [label, url, prefix] of [
     ['Facebook công khai','https://www.google.com/search?tbs=qdr:w&q=','site:facebook.com '],
     ['YouTube','https://www.youtube.com/results?search_query=',''],
     ['TikTok','https://www.tiktok.com/search?q=',''],
-    ['TikTok thịnh hành VN','https://ads.tiktok.com/creative/creativeCenter/trends?region=VN',null],
+    ['TikTok thịnh hành','https://ads.tiktok.com/creative/creativeCenter/trends?region=VN',null],
     ['Theanh28 · Mạng xã hội','https://linktr.ee/theanh28multichannels',null],
   ]) {
     const action = make('button', label);
     action.className = 'side-action';
-    action.onclick = () => window.open(url + (prefix === null ? '' : encodeURIComponent(prefix + (filter.value.trim() || selected?.title || 'tin nóng'))), '_blank', 'noopener');
+    action.onclick = () => {
+      const [region, language, defaultQuery, location] = regions[country.value] || regions['Việt Nam'];
+      const query = filter.value.trim() || defaultQuery;
+      const target = new URL(url);
+      if (label === 'Facebook công khai') {
+        target.searchParams.set('q', prefix + query + ' ' + location);
+        target.searchParams.set('gl', region);
+        target.searchParams.set('hl', language);
+      } else if (label === 'YouTube') {
+        target.searchParams.set('search_query', query + ' ' + location);
+        target.searchParams.set('gl', region);
+        target.searchParams.set('hl', language);
+      } else if (label === 'TikTok') {
+        target.searchParams.set('q', query + ' ' + location);
+        target.searchParams.set('lang', language);
+      } else if (label === 'TikTok thịnh hành') {
+        target.searchParams.set('region', region);
+      }
+      window.open(target.href, '_blank', 'noopener');
+    };
     social.append(action);
   }
   const trend = make('button', 'Tìm kiếm thịnh hành');
