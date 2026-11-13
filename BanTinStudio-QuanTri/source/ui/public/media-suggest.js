@@ -4,9 +4,9 @@
     if (label) el.textContent = label;
     return el;
   };
-  const trigger = make('button', 'Tìm ảnh cho bài viết');
+  const trigger = make('button', 'Tìm ảnh trên Google');
   trigger.type = 'button';
-  trigger.className = 'button';
+  trigger.className = 'button primary';
   trigger.style.margin = '8px 0';
   const dialog = make('dialog');
   dialog.style.cssText = 'width:min(940px,92vw);max-height:86vh;overflow:auto;padding:22px;border:1px solid #cedbd6;border-radius:14px;background:white;color:#172622';
@@ -25,7 +25,7 @@
   tools.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:12px 0';
   const google = make('button','Google Hình ảnh');
   google.type = 'button';
-  google.className = 'button';
+  google.className = 'button primary';
   const addSelected = make('button','Chèn tư liệu đã chọn (0)');
   addSelected.type = 'button';
   addSelected.className = 'button primary';
@@ -109,7 +109,8 @@
     }
   }
   async function find(provider = 'google') {
-    if (!keyword.value.trim() || google.disabled) return;
+    if (google.disabled) return;
+    if (!keyword.value.trim()) {status.textContent='Nhập từ khóa để tìm ảnh trên Google.';keyword.focus();return;}
     google.disabled = true;
     results.replaceChildren();
     selected.clear();
@@ -163,7 +164,7 @@
   keyword.onkeydown = event => { if (event.key === 'Enter') {event.preventDefault();find();} };
   function mount() {
     const drop = document.querySelector('.editor-content .dropzone');
-    if (drop && drop.nextElementSibling !== trigger) drop.after(trigger);
+    if (drop && drop.previousElementSibling !== trigger) drop.before(trigger);
   }
   new MutationObserver(mount).observe(document.getElementById('root'),{childList:true,subtree:true});
   mount();
