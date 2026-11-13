@@ -72,6 +72,7 @@
     updateSelection();
     status.textContent = 'Tìm ảnh theo từ khóa chung cho cả bài. Kết quả Google Hình ảnh hiển thị tại đây.';
     dialog.showModal();
+    if (keyword.value.trim()) void find('google');
   };
   async function insert() {
     const input = document.querySelector('input[type="file"][multiple][accept^="image/jpeg"]');
@@ -86,8 +87,9 @@
         if (!dialog.open) return;
         status.textContent = 'Đang tải ảnh ' + (transfer.items.length + failed.length + 1) + '/' + items.length + '…';
         try {
-          const query = new URLSearchParams({url:item.url,provider:item.provider});
-          const response = await fetch('/_desktop/media-suggest/file?' + query);
+          const loadImage = url => fetch('/_desktop/media-suggest/file?' + new URLSearchParams({url,provider:item.provider}));
+          let response = await loadImage(item.url);
+          if (!response.ok && item.thumb && item.thumb !== item.url) response = await loadImage(item.thumb);
           if (!response.ok) throw new Error((await response.json()).message);
           const blob = await response.blob();
           const suffix = {'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp','video/webm':'.webm','video/mp4':'.mp4'}[blob.type] || '';
