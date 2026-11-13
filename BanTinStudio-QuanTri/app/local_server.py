@@ -150,11 +150,11 @@ class Handler(BaseHTTPRequestHandler):
                 elif path.startswith('jobs/'):self.send(200,service.job(path.removeprefix('jobs/')))
                 elif path.startswith('saved/'):self.send(200,service.article(path.removeprefix('saved/')))
                 elif path.startswith('bundle/'):
-                    file=service.bundle(path.removeprefix('bundle/'));self.send(200,file.read_bytes(),'application/zip')
+                    file=service.bundle(path.removeprefix('bundle/'));self.send(200,file,'application/zip')
                 elif path.startswith('assets/'):
                     parts=path.split('/')
                     if len(parts)!=3:raise ArticleError('Đường dẫn ảnh không hợp lệ.')
-                    file,kind=service.asset(parts[1],parts[2]);self.send(200,file.read_bytes(),kind)
+                    file,kind=service.asset(parts[1],parts[2]);self.send(200,file,kind)
                 else:self.send(404,{'message':'Không tìm thấy chức năng lấy bài.'})
             except (ArticleError,OSError) as e:self.send(400,{'message':str(e)[:800]})
             return
