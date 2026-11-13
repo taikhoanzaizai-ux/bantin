@@ -364,10 +364,23 @@
       const voice=await until(()=>document.getElementById('voice-mode'),5000,'Không tìm thấy thiết lập giọng đọc.');
       if(['upload','presets'].includes(voice.value))setField(voice,'vieneu');
       await nextFrame();check();
-      const renderButton=await until(()=>{const button=action(document.querySelector('.preview-column'),'Tạo video');return button&&!button.disabled&&button;},8000,'Không tìm thấy nút Tạo video.');
-      report('Đang dựng video: '+candidate.title);
+      const studio=document.querySelector('.work-grid')?.closest('main');
+      if(!studio)throw Error('Không tìm thấy khu vực dựng video.');
+      const renderButton=await until(()=>{
+        const button=action(studio.querySelector('.export-card'),'Tạo video');
+        return button&&!button.disabled&&button;
+      },8000,'Không tìm thấy nút Tạo video.',studio);
+      const result=()=>document.querySelector('[aria-label="Video đã hoàn thành"]');
       renderButton.click();
-      await until(()=>document.querySelector('[aria-label="Video đã hoàn thành"]'),900000,'Chưa thấy kết quả video.',document.querySelector('.work-grid'));
+      await until(()=>renderButton.disabled||result(),15000,'Quân Bản Tin chưa bắt đầu dựng. Bấm Tạo video để thử lại.',studio);
+      if(!result()){
+        report('Đang dựng video: '+candidate.title);
+        await until(()=>{
+          if(result())return true;
+          if(!renderButton.disabled)throw Error('Quá trình dựng đã dừng. Bấm Tạo video để thử lại.');
+          return false;
+        },900000,'Chưa thấy kết quả video.',studio);
+      }
       const updated=new Set(readLog().urls);
       for(const key of candidate.keys||[articleKey(candidate.url)])updated.add(key);
       localStorage.setItem('qbt-auto-video',JSON.stringify({urls:[...updated]}));
