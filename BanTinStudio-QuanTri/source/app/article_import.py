@@ -1,3 +1,4 @@
+import io
 """Public article text/images and grounded news scripts; stdlib-only portable backend."""
 from __future__ import annotations
 import collections,concurrent.futures,hashlib,html,http.client,io,ipaddress,json,re,secrets,socket,ssl,threading,time,urllib.parse,zipfile,zlib
@@ -193,7 +194,7 @@ def local_script(article,seconds=90,style='standard'):
 
 class ArticleService:
     def __init__(self,data,fetcher=None):
-        self.root=Path(data)/'articles';self.root.mkdir(parents=True,exist_ok=True)
+        self.root=Path(data)/'articles';self.memory={};self.images={}
         self.config_path=Path(data)/'writer/settings.json';self.fetch=fetcher or fetch_public;self.jobs={};self.lock=threading.RLock()
     def config(self,public=True):
         try:cfg=json.loads(self.config_path.read_text('utf-8'))
@@ -246,10 +247,13 @@ class ArticleService:
         if not re.fullmatch(r'[a-f0-9]{24}',str(jid)):raise ArticleError('Mã bài không hợp lệ.')
         return self.root/jid
     def article(self,jid):
+        with self.lock:
+            if jid in self.memory:return self.memory[jid].copy()
         try:return json.loads((self.folder(jid)/'article.json').read_text('utf-8'))
         except (OSError,ValueError):raise ArticleError('Không tìm thấy bài đã lưu.') from None
     def history(self):
-        records=[]
+        with self.lock:
+            records=[{k:a.get(k) for k in ('id','url','title','source_name','saved_at')}|{'count':len(a.get('images',[]))} for a in reversed(list(self.memory.values()))]
         for p in sorted(self.root.glob('*/article.json'),key=lambda p:p.stat().st_mtime,reverse=True)[:60]:
             try:
                 a=json.loads(p.read_text('utf-8'));records.append({k:a.get(k) for k in ('id','url','title','source_name','saved_at') }|{'count':len(a.get('images',[]))})
@@ -258,18 +262,21 @@ class ArticleService:
     def asset(self,jid,name):
         article=self.article(jid);image=next((i for i in article['images'] if i['file']==name),None)
         if not image:raise ArticleError('Không tìm thấy ảnh đã lưu.')
-        return self.folder(jid)/'images'/image['file'],image['mime']
-    def bundle(self,jid):
-        folder=self.folder(jid);article=self.article(jid);path=folder/'tu-lieu.zip'
         with self.lock:
-            # Rebuild so an edited/generated script is included.
-            with zipfile.ZipFile(path,'w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
-                for name in ('article.json','source.txt','script.txt'):
-                    if (folder/name).is_file():z.write(folder/name,name)
-                for image in article['images']:z.write(folder/'images'/image['file'],'images/'+image['file'])
-        return path
+            if jid in self.images:
+                return self.images[jid][name],image['mime']
+        return (self.folder(jid)/'images'/image['file']).read_bytes(),image['mime']
+    def bundle(self,jid):
+        article=self.article(jid);buffer=io.BytesIO()
+        with zipfile.ZipFile(buffer,'w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
+            z.writestr('article.json',json.dumps(article,ensure_ascii=False))
+            z.writestr('source.txt',article['text'])
+            if article.get('draft'):z.writestr('script.txt',article['draft']['script'])
+            for image in article['images']:
+                z.writestr('images/'+image['file'],self.asset(jid,image['file'])[0])
+        return buffer.getvalue()
     def run(self,jid,url,scope,pasted,event):
-        folder=self.folder(jid);folder.mkdir(exist_ok=True);(folder/'images').mkdir(exist_ok=True)
+        temporary_images={}
         warnings=[]
         try:
             self.patch(jid,status='reading')
@@ -302,25 +309,27 @@ class ArticleService:
                     for batch_index,f in enumerate(futures):
                         index=batch_start+batch_index
                         item,result,error=f.result()
-                        if event.is_set():raise Cancelled('Đã dừng lấy bài. Các tệp đã tải vẫn nằm trong thư mục tư liệu.')
+                        if event.is_set():raise Cancelled('Đã dừng lấy bài. Ảnh tạm đã được bỏ.')
                         if result:
                             data,ext,mime,final=result;digest=hashlib.sha256(data).hexdigest()
                             if digest not in hashes:
                                 if bytes_saved+len(data)>180_000_000:warnings.append('Tổng ảnh đạt giới hạn 180 MB; các ảnh còn lại chưa được lưu.');result=None
                                 else:
                                     hashes.add(digest);bytes_saved+=len(data);name=f'{len(images)+1:03d}-{digest[:12]}.{ext}'
-                                    (folder/'images'/name).write_bytes(data);images.append({'file':name,'mime':mime,'bytes':len(data),'sha256':digest,'url':item['url'],'resolved_url':final,'alt':item['alt'],'asset_url':f'/_desktop/article/assets/{jid}/{name}'})
+                                    temporary_images[name]=data;images.append({'file':name,'mime':mime,'bytes':len(data),'sha256':digest,'url':item['url'],'resolved_url':final,'alt':item['alt'],'asset_url':f'/_desktop/article/assets/{jid}/{name}'})
                         if error:warnings.append(f"Ảnh {index+1}: {error}")
                         self.patch(jid,completed=index+1,message=f'Đã kiểm tra {index+1}/{len(candidates)} ảnh; lưu được {len(images)} ảnh không trùng.')
             if event.is_set():raise Cancelled('Đã dừng lấy bài.')
-            article.update(id=jid,images=images,warnings=warnings,scope=scope,candidates=total,saved_at=time.strftime('%Y-%m-%dT%H:%M:%S%z'),storage_hint=f'data/articles/{jid}')
-            self.write_article(article);self.patch(jid,status='done',result=article,message=f'Đã lưu bài viết và {len(images)} ảnh.')
+            article.update(id=jid,images=images,warnings=warnings,scope=scope,candidates=total,saved_at=time.strftime('%Y-%m-%dT%H:%M:%S%z'),storage_hint='Bộ nhớ phiên làm việc')
+            with self.lock:
+                self.images[jid]=temporary_images
+                self.write_article(article)
+                while sum(i['bytes'] for a in self.memory.values() for i in a['images'])>360_000_000 or len(self.memory)>30:
+                    old=next(iter(self.memory));self.memory.pop(old);self.images.pop(old,None)
+            self.patch(jid,status='done',result=article,message=f'Đã lấy bài viết và {len(images)} ảnh.')
         except Exception as e:self.patch(jid,status='cancelled' if isinstance(e,Cancelled) else 'error',error=str(e)[:800],message=str(e)[:800])
     def write_article(self,article):
-        folder=self.folder(article['id']);folder.mkdir(exist_ok=True)
-        (folder/'article.json').write_text(json.dumps(article,ensure_ascii=False,indent=2),'utf-8')
-        (folder/'source.txt').write_text(article['title']+'\n'+article['url']+'\n\n'+article['text'],'utf-8')
-        if article.get('draft'):(folder/'script.txt').write_text(article['draft']['title']+'\n\n'+article['draft']['script'],'utf-8')
+        with self.lock:self.memory[article['id']]=article.copy()
     def save_draft(self,jid,body):
         article=self.article(jid);title=body.get('title');script=body.get('script')
         if not isinstance(title,str) or len(title)>120 or not isinstance(script,str) or not script.strip():raise ArticleError('Kịch bản chỉnh sửa cần tiêu đề tối đa 120 ký tự và nội dung không được trống.')
