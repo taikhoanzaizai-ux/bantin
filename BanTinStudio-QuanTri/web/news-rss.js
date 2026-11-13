@@ -403,7 +403,7 @@
         label.textContent = String(index + 2);
     });
     const linkField=grid.querySelector('label[for="article-url"]');
-    if(linkField&&linkField.nextElementSibling!==startLink)linkField.after(startLink);
+    if(linkField&&startLink.parentElement!==linkField.parentElement)linkField.after(startLink);
     if (!mounted) {
       mounted=true;
       const queued=sessionStorage.getItem('qbt-auto-next');
