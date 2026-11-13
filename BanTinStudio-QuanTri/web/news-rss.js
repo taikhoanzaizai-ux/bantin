@@ -260,17 +260,17 @@
     Object.getOwnPropertyDescriptor(el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(el,value);
     el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));
   }
-  async function autoVideo() {
-    if(!makeVideoAuto.checked||running||!active||trendMode)return;
+  async function autoVideo(manual = null, fresh = false) {
+    if(running||(!manual&&(!makeVideoAuto.checked||!active||trendMode)))return;
     const log=readLog();
     if(log.urls.length>=3){report('Đã đạt giới hạn 3 lượt tự động hôm nay.');return;}
-    const candidate=articles.filter(group=>group.score>=75).flatMap(group=>group.items)
+    const candidate=manual||articles.filter(group=>group.score>=75).flatMap(group=>group.items)
       .find(item=>(topic.value==='Tất cả'||item.topic===topic.value)&&!log.urls.includes(articleKey(item.url)));
     if(!candidate){report('Chưa có bài mới từ 75 điểm.');return;}
     if(document.querySelector('.modal-backdrop,dialog[open]')||scriptTab()?.disabled)return;
     running=true;
     const ticket=epoch;
-    const check=()=>{if(!makeVideoAuto.checked||epoch!==ticket)throw Error('Đã tắt tự động.');};
+    const check=()=>{if((!manual&&!makeVideoAuto.checked)||epoch!==ticket)throw Error('Đã tắt tự động.');};
     async function until(get,ms,error,alertRoot){
       const end=Date.now()+ms;
       while(Date.now()<end){
@@ -283,14 +283,6 @@
       throw Error(error);
     }
     try {
-      openScript(candidate.url);
-      const importer=await until(()=>document.querySelector('.article-importer'),5000,'Không mở được Kịch bản.');
-      const title=document.getElementById('title');
-      const script=document.getElementById('script');
-      if(!title||!script||title.value?.trim()||script.value?.trim()||document.querySelector('.media-list .media-row')){
-        report('Tạm chờ: mở dự án trống để tự làm video.');return;
-      }
-      const field=await until(()=>{const node=document.getElementById('article-url');return node?.value===candidate.url&&node;},5000,'Không điền được link.');
       const csrfResponse=await fetch('/_desktop/status',{cache:'no-store'});
       const session=await csrfResponse.json();
       check();
@@ -299,6 +291,15 @@
       const config=await configResponse.json();
       check();
       if(!configResponse.ok||!config.has_key)throw Error('Hãy lưu khóa API trong Thiết lập API / model.');
+      if(!fresh){
+        sessionStorage.setItem('qbt-auto-next',JSON.stringify({candidate,manual:!!manual,enabled:makeVideoAuto.checked,country:country.value,topic:topic.value}));
+        localStorage.removeItem('news-draft');
+        location.reload();
+        return;
+      }
+      openScript(candidate.url);
+      const importer=await until(()=>document.querySelector('.article-importer'),5000,'Không mở được Kịch bản.');
+      const field=await until(()=>{const node=document.getElementById('article-url');return node?.value===candidate.url&&node;},5000,'Không điền được link.');
       const mode=importer.querySelector('select[aria-label="Cách viết kịch bản từ link"]');
       if(!mode||mode.disabled)throw Error('Không chọn được chế độ viết AI.');
       const pasted=importer.querySelector('textarea[aria-label="Nội dung nguồn dán bổ sung"]');
@@ -328,7 +329,7 @@
       const transfer=new DataTransfer();
       report('Đang tìm ảnh Google: '+candidate.title);
       try{
-        const response=await fetch('/_desktop/media-suggest/google',{method:'POST',headers:{'Content-Type':'application/json','X-Studio-CSRF':session.csrf},body:JSON.stringify({q:candidate.title.slice(0,180)})});
+        const response=await fetch('/_desktop/media-suggest/google',{method:'POST',headers:{'Content-Type':'application/json','X-Studio-CSRF':session.csrf},body:JSON.stringify({q:(document.getElementById('title')?.value.trim()||candidate.title).slice(0,180)})});
         const results=await response.json();
         if(!response.ok)throw Error(results.message);
         for(const item of results.slice(0,8)){
@@ -370,11 +371,22 @@
   makeVideoAuto.onchange=()=>{
     epoch++;
     if(!makeVideoAuto.checked){report('Đã tắt tự động. Tác vụ đã bắt đầu có thể vẫn hoàn tất.');return;}
-    if(!confirm('Bật tự làm video? App sẽ chọn bài từ 75 điểm, dùng API có thể tính phí, thêm ảnh Google và dựng tối đa 3 lượt/ngày. Chỉ chạy với dự án trống.')){
+    if(!confirm('Bật tự làm video? App sẽ chọn bài từ 75 điểm, dùng API có thể tính phí, thêm ảnh Google và dựng tối đa 3 lượt/ngày. Mỗi lần bắt đầu sẽ bỏ nội dung dự án đang mở. Hãy lưu dự án trước khi bật.')){
       makeVideoAuto.checked=false;return;
     }
     report('Đã bật tự động. Đang quét tin…');
     load(true);
+  };
+  const startLink=make('button','Bắt đầu làm tự động');
+  startLink.type='button';startLink.className='button primary';
+  startLink.onclick=()=>{
+    if(running){report('Đang có tác vụ tự động.');return;}
+    const value=document.getElementById('article-url')?.value.trim();
+    let url;
+    try{url=new URL(value);if(!['http:','https:'].includes(url.protocol))throw Error();}
+    catch{report('Nhập link bài viết HTTP hoặc HTTPS trước.');return;}
+    if(confirm('Bắt đầu từ link đã nhập? Nội dung đang mở sẽ bị bỏ. Hãy lưu dự án trước nếu cần. Lượt gọi AI có thể tính phí.'))
+      void autoVideo({url:url.href,title:url.hostname});
   };
   let mounted = false;
   function mount() {
@@ -390,7 +402,22 @@
       if (label && !label.querySelector('svg') && label.textContent !== String(index + 2))
         label.textContent = String(index + 2);
     });
-    if (!mounted) { mounted = true; show(true); }
+    const linkField=grid.querySelector('label[for="article-url"]');
+    if(linkField&&linkField.nextElementSibling!==startLink)linkField.after(startLink);
+    if (!mounted) {
+      mounted=true;
+      const queued=sessionStorage.getItem('qbt-auto-next');
+      if(queued){
+        sessionStorage.removeItem('qbt-auto-next');
+        try{
+          const job=JSON.parse(queued);
+          makeVideoAuto.checked=job.enabled;
+          country.value=job.country;topic.value=job.topic;
+          show(false);
+          void autoVideo(job.candidate,true);
+        }catch{show(true);}
+      }else show(true);
+    }
     const section = grid.querySelector('.section-number');
     const buttons = Array.from(sidebar.children).slice(1);
     const index = buttons.findIndex(button => button.classList.contains('active'));
