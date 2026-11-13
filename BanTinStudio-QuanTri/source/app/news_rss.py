@@ -83,9 +83,12 @@ FEEDS_BY_COUNTRY = {
         ("The Korea Times", "Thể thao", "https://feed.koreatimes.co.kr/k/sports.xml"),
     ],
     "Nhật Bản": [
+        ("Yahoo!ニュース", "Tin chung", "https://news.yahoo.co.jp/rss/topics/top-picks.xml"),
+        ("Mainichi", "Tin chung", "https://mainichi.jp/rss/etc/mainichi-flash.rss"),
+        ("Google News Nhật Bản", "Tin chung", "https://news.google.com/rss?hl=ja&gl=JP&ceid=JP%3Aja"),
         ("NHK World", "Tin chung", "https://www3.nhk.or.jp/nhkworld/en/news/rss/all.xml"),
         ("The Japan Times", "Tin chung", "https://www.japantimes.co.jp/feed/topstories/"),
-        ("NHK", "Tin chung", "https://www3.nhk.or.jp/rss/news/cat0.xml"),
+        ("NHK", "Tin chung", "https://www.nhk.or.jp/rss/news/cat0.xml"),
     ],
 }
 TOPICS = ("Tất cả", "Thời sự", "Đời sống", "Pháp luật", "Thể thao", "Giải trí", "Tin chung")
