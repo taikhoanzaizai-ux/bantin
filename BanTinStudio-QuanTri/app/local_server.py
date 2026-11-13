@@ -192,6 +192,24 @@ class Handler(BaseHTTPRequestHandler):
                 path=self.path.removeprefix('/_desktop/article/')
                 if path=='import':self.send(202,service.submit(body))
                 elif path=='settings':self.send(200,service.save_config(body))
+                elif path in ('writer-models','writer-test'):
+                    cfg=service.config(False)
+                    if cfg['base_url']!='https://api.openai.com/v1':
+                        raise ArticleError('Chức năng này dùng địa chỉ OpenAI mặc định.')
+                    key=cfg['api_key'] or os.environ.get('OPENAI_API_KEY','').strip()
+                    if not key:raise ArticleError('Hãy lưu khóa API OpenAI trước.')
+                    headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'}
+                    if path=='writer-models':
+                        raw,_,_=service.fetch(cfg['base_url']+'/models',headers=headers,limit=2_000_000,follow_redirects=False)
+                        self.send(200,{'models':sorted(item['id'] for item in json.loads(raw)['data'] if item['id'].startswith('gpt-'))})
+                    else:
+                        model=str(body.get('model','')).strip()
+                        if not model or len(model)>160:raise ArticleError('Nhập tên model.')
+                        request={'model':model,'messages':[{'role':'user','content':'Trả lời đúng một từ: OK.'}],'max_completion_tokens':128}
+                        raw,_,_=service.fetch(cfg['base_url']+'/chat/completions',headers=headers,body=json.dumps(request).encode(),timeout=30,limit=100_000)
+                        reply=json.loads(raw).get('choices',[{}])[0].get('message',{}).get('content')
+                        if not reply:raise ArticleError('Model chưa trả về nội dung.')
+                        self.send(200,{'ok':True})
                 elif path=='draft':self.send(200,service.draft(body.get('id'),body))
                 elif path=='save-draft':self.send(200,service.save_draft(body.get('id'),body))
                 elif path=='cancel':self.send(200,service.cancel(body.get('id')))
