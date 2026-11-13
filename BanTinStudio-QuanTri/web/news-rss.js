@@ -260,11 +260,11 @@
     Object.getOwnPropertyDescriptor(el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(el,value);
     el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));
   }
-  async function autoVideo(manual = null, fresh = false) {
-    if(running||(!manual&&(!makeVideoAuto.checked||!active||trendMode)))return;
+  async function autoVideo(manual = null, queued = null) {
+    if(running||(!manual&&(!makeVideoAuto.checked||(!queued&&(!active||trendMode)))))return;
     const log=readLog();
-    if(log.urls.length>=3){report('Đã đạt giới hạn 3 lượt tự động hôm nay.');return;}
-    const candidate=manual||articles.filter(group=>group.score>=75).flatMap(group=>group.items)
+    if(!manual&&log.urls.length>=3){report('Đã đạt giới hạn 3 lượt tự động hôm nay.');return;}
+    const candidate=manual||queued||articles.filter(group=>group.score>=75).flatMap(group=>group.items)
       .find(item=>(topic.value==='Tất cả'||item.topic===topic.value)&&!log.urls.includes(articleKey(item.url)));
     if(!candidate){report('Chưa có bài mới từ 75 điểm.');return;}
     if(document.querySelector('.modal-backdrop,dialog[open]')||scriptTab()?.disabled)return;
@@ -291,7 +291,7 @@
       const config=await configResponse.json();
       check();
       if(!configResponse.ok||!config.has_key)throw Error('Hãy lưu khóa API trong Thiết lập API / model.');
-      if(!fresh){
+      if(!queued){
         sessionStorage.setItem('qbt-auto-next',JSON.stringify({candidate,manual:!!manual,enabled:makeVideoAuto.checked,country:country.value,topic:topic.value}));
         localStorage.removeItem('news-draft');
         location.reload();
@@ -308,8 +308,10 @@
       await nextFrame();check();
       const loadButton=action(importer,'Lấy bài, lưu ảnh & tạo kịch bản');
       if(!loadButton||loadButton.disabled||field.value!==candidate.url)throw Error('Không thể bắt đầu lấy bài.');
-      log.urls.push(articleKey(candidate.url));
-      localStorage.setItem('qbt-auto-video',JSON.stringify(log));
+      if(!manual){
+        log.urls.push(articleKey(candidate.url));
+        localStorage.setItem('qbt-auto-video',JSON.stringify(log));
+      }
       report('Đang viết kịch bản: '+candidate.title);
       loadButton.click();
       const apply=await until(()=>{
@@ -414,7 +416,7 @@
           makeVideoAuto.checked=job.enabled;
           country.value=job.country;topic.value=job.topic;
           show(false);
-          void autoVideo(job.candidate,true);
+          void autoVideo(job.manual ? job.candidate : null,job.candidate);
         }catch{show(true);}
       }else show(true);
     }
