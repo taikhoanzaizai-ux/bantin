@@ -12,7 +12,7 @@
   button.className='button';
   button.style.margin='8px 0';
   const dialog=make('dialog');
-  dialog.style.cssText='width:min(550px,92vw);padding:22px;border:1px solid #cedbd6;border-radius:14px;background:white';
+  dialog.style.cssText='width:min(550px,92vw);padding:22px;border:1px solid #cedeea;border-radius:14px;background:#eff8ff';
   dialog.setAttribute('aria-label','Thiết lập API viết kịch bản');
   const provider=make('select');
   for(const name of Object.keys(presets))provider.append(make('option',name));
@@ -26,13 +26,13 @@
   const message=make('p');message.setAttribute('role','status');
   const save=make('button','Lưu cấu hình');save.type='button';save.className='button primary';
   const close=make('button','Đóng');close.type='button';close.className='button';close.onclick=()=>dialog.close();
-  dialog.append(make('h2','API viết lại kịch bản'),field('Nhà cung cấp',provider),field('Địa chỉ API',base),field('Tên model',model),field('Khóa API',key),message,save,close);
+  dialog.append(make('h2','AI viết kịch bản'),field('Nhà cung cấp',provider),field('Địa chỉ API',base),field('Tên model',model),field('Khóa API',key),message,save,close);
   const keyLink=make('a','Lấy khóa OpenAI');
   keyLink.href='https://platform.openai.com/login?next=%2Fapi-keys';
   keyLink.target='_blank';keyLink.rel='noopener noreferrer';keyLink.className='button';
   const models=make('select');
   models.setAttribute('aria-label','Model OpenAI tiết kiệm');
-  for(const [id,label] of [['','Chọn model OpenAI'],['gpt-5.4-mini','GPT-5.4 mini'],['gpt-5.4-nano','GPT-5.4 nano']]){
+  for(const [id,label] of [['','Chọn model OpenAI'],['gpt-6.1-sol','GPT-6.1 Sol · cân bằng'],['gpt-6-luna','GPT-6 Luna · tiết kiệm'],['gpt-6-astra','GPT-6 Astra · tác vụ phức tạp']]){
     const option=make('option',label);option.value=id;models.append(option);
   }
   models.onchange=()=>{if(models.value && provider.value==='OpenAI')model.value=models.value;};
@@ -49,6 +49,26 @@
     catch{message.textContent='Không sao chép được. Bạn có thể mở ChatGPT và dán link bài trực tiếp.';}
   };
   dialog.append(keyLink,field('Model OpenAI',models),make('p','ChatGPT dùng gói chat của bạn. Chế độ API tính phí riêng.'),copy,chat);
+  for(const [action,label] of [['writer-models','Tải danh sách model'],['writer-test','Thử gọi model · có dùng token']]){
+    const control=make('button',label);control.type='button';control.className='button';
+    control.onclick=async()=>{
+      if(provider.value!=='OpenAI' || key.value.trim() || base.value.trim()!==original?.base_url){message.textContent='Lưu cấu hình OpenAI trước khi thử.';return;}
+      if(action==='writer-test'&&!confirm('Gửi yêu cầu thử đến OpenAI? Lượt gọi có thể tính phí API.'))return;
+      control.disabled=true;message.textContent='Đang kết nối OpenAI…';
+      try{
+        const session=await fetch('/_desktop/status');const {csrf}=await session.json();
+        const response=await fetch('/_desktop/article/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Studio-CSRF':csrf},body:JSON.stringify({model:model.value})});
+        const result=await response.json();
+        if(!response.ok)throw new Error(result.message||'Không kết nối được OpenAI.');
+        if(action==='writer-models'){
+          for(const id of result.models)if(![...models.options].some(option=>option.value===id)){const option=make('option',id);option.value=id;models.append(option);}
+          message.textContent='Đã tải '+result.models.length+' model GPT.';
+        }else message.textContent='Model phản hồi thành công.';
+      }catch(error){message.textContent=error.message;}
+      finally{control.disabled=false;}
+    };
+    dialog.append(control);
+  }
   document.body.append(dialog);
   let original;
   provider.onchange=()=>{
@@ -75,7 +95,7 @@
   };
   save.onclick=async()=>{
     if(!base.value.trim()||!model.value.trim()){message.textContent='Nhập địa chỉ API và model.';return;}
-    if(!key.value.trim()&&(!original?.has_key||original.base_url!==base.value.trim().replace(/\/+$/,''))){message.textContent='Nhập khóa API cho địa chỉ đã chọn.';return;}
+    if(!key.value.trim()&&((!original?.has_key && provider.value!=='OpenAI')||original.base_url!==base.value.trim().replace(/\/+$/,''))){message.textContent='Nhập khóa API cho địa chỉ đã chọn.';return;}
     save.disabled=true;
     try{
       const status=await fetch('/_desktop/status',{cache:'no-store'});const info=await status.json();
