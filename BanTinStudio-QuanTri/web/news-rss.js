@@ -198,6 +198,7 @@
         articles.length+' nhóm tin · '+(result.total-result.failed.length)+'/'+result.total+' luồng RSS'+
         (result.failed.length ? ' · Lỗi: '+result.failed.join(', ') : '');
       render();
+      if(makeVideoAuto.checked)void autoVideo();
     } catch (error) {
       if (ticket === generation) status.textContent = error.message;
     } finally {
@@ -226,6 +227,155 @@
     const control = event.target.closest('.sidebar nav button, .steps-bar button');
     if (active && control && control !== nav && control !== step) show(false);
   });
+  const makeVideoAuto = make('input');
+  makeVideoAuto.type = 'checkbox';
+  const videoLabel = make('label');
+  videoLabel.append(makeVideoAuto, ' Tự làm video');
+  const autoStatus = make('p','Tự động đang tắt');
+  autoStatus.setAttribute('role','status');
+  tools.append(videoLabel);
+  tools.after(autoStatus);
+  const live = make('p');
+  live.setAttribute('role','status');
+  live.style.cssText='position:fixed;right:18px;bottom:112px;z-index:900;background:#eff8f4;padding:8px;max-width:360px';
+  live.hidden=true;
+  document.body.append(live);
+  function report(text) {
+    autoStatus.textContent=text;
+    live.textContent=text;
+    live.hidden=false;
+  }
+  const day = () => new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh'}).format(new Date());
+  const articleKey = url => new URL(url).origin + new URL(url).pathname.replace(/\/$/,'');
+  let running=false, epoch=0;
+  const readLog = () => {
+    try {
+      const value=JSON.parse(localStorage.getItem('qbt-auto-video')||'{}');
+      return value.day===day() && Array.isArray(value.urls) ? value : {day:day(),urls:[]};
+    } catch {return {day:day(),urls:[]};}
+  };
+  const nextFrame=()=>new Promise(resolve=>setTimeout(resolve,200));
+  const action=(root,label)=>[...(root?.querySelectorAll('button')||[])].find(el=>el.textContent.trim()===label);
+  function setField(el,value) {
+    Object.getOwnPropertyDescriptor(el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(el,value);
+    el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));
+  }
+  async function autoVideo() {
+    if(!makeVideoAuto.checked||running||!active||trendMode)return;
+    const log=readLog();
+    if(log.urls.length>=3){report('Đã đạt giới hạn 3 lượt tự động hôm nay.');return;}
+    const candidate=articles.filter(group=>group.score>=75).flatMap(group=>group.items)
+      .find(item=>(topic.value==='Tất cả'||item.topic===topic.value)&&!log.urls.includes(articleKey(item.url)));
+    if(!candidate){report('Chưa có bài mới từ 75 điểm.');return;}
+    if(document.querySelector('.modal-backdrop,dialog[open]')||scriptTab()?.disabled)return;
+    running=true;
+    const ticket=epoch;
+    const check=()=>{if(!makeVideoAuto.checked||epoch!==ticket)throw Error('Đã tắt tự động.');};
+    async function until(get,ms,error,alertRoot){
+      const end=Date.now()+ms;
+      while(Date.now()<end){
+        check();
+        const alert=alertRoot?.querySelector('.notice.error,[role="alert"]');
+        if(alert?.textContent.trim())throw Error(alert.textContent.trim());
+        const value=get();if(value)return value;
+        await nextFrame();
+      }
+      throw Error(error);
+    }
+    try {
+      openScript(candidate.url);
+      const importer=await until(()=>document.querySelector('.article-importer'),5000,'Không mở được Kịch bản.');
+      const title=document.getElementById('title');
+      const script=document.getElementById('script');
+      if(!title||!script||title.value?.trim()||script.value?.trim()||document.querySelector('.media-list .media-row')){
+        report('Tạm chờ: mở dự án trống để tự làm video.');return;
+      }
+      const field=await until(()=>{const node=document.getElementById('article-url');return node?.value===candidate.url&&node;},5000,'Không điền được link.');
+      const csrfResponse=await fetch('/_desktop/status',{cache:'no-store'});
+      const session=await csrfResponse.json();
+      check();
+      if(!csrfResponse.ok||!session.csrf)throw Error('Hãy mở lại Quân Bản Tin.');
+      const configResponse=await fetch('/_desktop/article/settings',{cache:'no-store'});
+      const config=await configResponse.json();
+      check();
+      if(!configResponse.ok||!config.has_key)throw Error('Hãy lưu khóa API trong Thiết lập API / model.');
+      const mode=importer.querySelector('select[aria-label="Cách viết kịch bản từ link"]');
+      if(!mode||mode.disabled)throw Error('Không chọn được chế độ viết AI.');
+      const pasted=importer.querySelector('textarea[aria-label="Nội dung nguồn dán bổ sung"]');
+      if(pasted?.value.trim())throw Error('Ô nội dung nguồn đang có văn bản. Hãy mở dự án trống.');
+      setField(mode,'ai');
+      await nextFrame();check();
+      const loadButton=action(importer,'Lấy bài, lưu ảnh & tạo kịch bản');
+      if(!loadButton||loadButton.disabled||field.value!==candidate.url)throw Error('Không thể bắt đầu lấy bài.');
+      log.urls.push(articleKey(candidate.url));
+      localStorage.setItem('qbt-auto-video',JSON.stringify(log));
+      report('Đang viết kịch bản: '+candidate.title);
+      loadButton.click();
+      const apply=await until(()=>{
+        const button=action(importer,'Áp dụng vào dự án');
+        const draft=importer.querySelector('textarea[aria-label="Kịch bản đề xuất từ link"]');
+        return draft?.value.trim() && button && !button.disabled && button;
+      },240000,'Chưa tạo được kịch bản AI.',importer);
+      const target=importer.querySelector('select[aria-label="Video nhận kịch bản từ link"]');
+      if(target)setField(target,'shared');
+      const checks=[...importer.querySelectorAll('.consent-row input[type=checkbox]')];
+      for(const box of checks)if(!box.checked)box.click();
+      const images=[...importer.querySelectorAll('input[aria-label^="Chọn ảnh "]')];
+      images.slice(3).forEach(box=>{if(box.checked)box.click();});
+      await nextFrame();check();
+      apply.click();
+      await until(()=>document.getElementById('script')?.value.trim()&&!apply.disabled,45000,'Không áp dụng được kịch bản.',importer);
+      const transfer=new DataTransfer();
+      report('Đang tìm ảnh Google: '+candidate.title);
+      try{
+        const response=await fetch('/_desktop/media-suggest/google',{method:'POST',headers:{'Content-Type':'application/json','X-Studio-CSRF':session.csrf},body:JSON.stringify({q:candidate.title.slice(0,180)})});
+        const results=await response.json();
+        if(!response.ok)throw Error(results.message);
+        for(const item of results.slice(0,8)){
+          check();
+          if(transfer.items.length>=3)break;
+          try{
+            const query=new URLSearchParams({url:item.url,provider:'google'});
+            const file=await fetch('/_desktop/media-suggest/file?'+query);
+            if(!file.ok)continue;
+            const blob=await file.blob();
+            const ext={'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp'}[blob.type];
+            if(ext)transfer.items.add(new File([blob],item.title.slice(0,120)+ext,{type:blob.type}));
+          }catch{}
+        }
+      }catch(error){check();if(!images.length)throw error;}
+      check();
+      if(transfer.items.length){
+        const input=document.querySelector('input[type="file"][multiple][accept^="image/jpeg"]');
+        if(!input)throw Error('Không tìm thấy ô thêm ảnh.');
+        input.files=transfer.files;
+        input.dispatchEvent(new Event('change',{bubbles:true}));
+        await nextFrame();
+      }else if(!images.length)throw Error('Chưa có ảnh để dựng video.');
+      const tabs=document.querySelectorAll('.sidebar nav button.nav-item');
+      const voiceTab=[...tabs].find(tab=>tab.textContent.trim().startsWith('Cảnh & giọng đọc'));
+      await until(()=>voiceTab&&!voiceTab.disabled,45000,'Không mở được mục giọng đọc.');
+      voiceTab.click();
+      const voice=await until(()=>document.getElementById('voice-mode'),5000,'Không tìm thấy thiết lập giọng đọc.');
+      if(['upload','presets'].includes(voice.value))setField(voice,'vieneu');
+      await nextFrame();check();
+      const renderButton=await until(()=>{const button=action(document.querySelector('.preview-column'),'Tạo video');return button&&!button.disabled&&button;},8000,'Không tìm thấy nút Tạo video.');
+      report('Đang dựng video: '+candidate.title);
+      renderButton.click();
+      await until(()=>document.querySelector('[aria-label="Video đã hoàn thành"]'),900000,'Chưa thấy kết quả video.',document.querySelector('.work-grid'));
+      report('Video đã sẵn sàng: '+candidate.title+'. Bấm Lưu video để lưu.');
+    } catch(error){report(error.message);}
+    finally{running=false;}
+  }
+  makeVideoAuto.onchange=()=>{
+    epoch++;
+    if(!makeVideoAuto.checked){report('Đã tắt tự động. Tác vụ đã bắt đầu có thể vẫn hoàn tất.');return;}
+    if(!confirm('Bật tự làm video? App sẽ chọn bài từ 75 điểm, dùng API có thể tính phí, thêm ảnh Google và dựng tối đa 3 lượt/ngày. Chỉ chạy với dự án trống.')){
+      makeVideoAuto.checked=false;return;
+    }
+    report('Đã bật tự động. Đang quét tin…');
+    load(true);
+  };
   let mounted = false;
   function mount() {
     const sidebar = document.querySelector('.sidebar nav');
