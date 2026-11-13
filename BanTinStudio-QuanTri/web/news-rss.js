@@ -245,14 +245,13 @@
     live.textContent=text;
     live.hidden=false;
   }
-  const day = () => new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh'}).format(new Date());
   const articleKey = url => new URL(url).origin + new URL(url).pathname.replace(/\/$/,'');
   let running=false, epoch=0;
   const readLog = () => {
     try {
       const value=JSON.parse(localStorage.getItem('qbt-auto-video')||'{}');
-      return value.day===day() && Array.isArray(value.urls) ? value : {day:day(),urls:[]};
-    } catch {return {day:day(),urls:[]};}
+      return {urls:Array.isArray(value.urls)?value.urls:[]};
+    } catch {return {urls:[]};}
   };
   const nextFrame=()=>new Promise(resolve=>setTimeout(resolve,200));
   const action=(root,label)=>[...(root?.querySelectorAll('button')||[])].find(el=>el.textContent.trim()===label);
@@ -263,9 +262,16 @@
   async function autoVideo(manual = null, queued = null) {
     if(running||(!manual&&(!makeVideoAuto.checked||(!queued&&(!active||trendMode)))))return;
     const log=readLog();
-    if(!manual&&log.urls.length>=3){report('Đã đạt giới hạn 3 lượt tự động hôm nay.');return;}
-    const candidate=manual||queued||articles.filter(group=>group.score>=75).flatMap(group=>group.items)
-      .find(item=>(topic.value==='Tất cả'||item.topic===topic.value)&&!log.urls.includes(articleKey(item.url)));
+    const seen=new Set(log.urls);
+    const candidates=articles.filter(group=>group.score>=75).flatMap(group=>{
+      const keys=group.items.map(item=>articleKey(item.url));
+      if(keys.some(key=>seen.has(key)))return [];
+      return group.items.map(item=>({...item,keys}));
+    });
+    const candidate=manual||queued||candidates.find(item=>topic.value==='Tất cả'||item.topic===topic.value);
+    if(candidate&&(candidate.keys||[articleKey(candidate.url)]).some(key=>seen.has(key))){
+      report('Bài này đã được dựng video.');return;
+    }
     if(!candidate){report('Chưa có bài mới từ 75 điểm.');return;}
     if(document.querySelector('.modal-backdrop,dialog[open]')||scriptTab()?.disabled)return;
     running=true;
@@ -308,10 +314,6 @@
       await nextFrame();check();
       const loadButton=action(importer,'Lấy bài, lưu ảnh & tạo kịch bản');
       if(!loadButton||loadButton.disabled||field.value!==candidate.url)throw Error('Không thể bắt đầu lấy bài.');
-      if(!manual){
-        log.urls.push(articleKey(candidate.url));
-        localStorage.setItem('qbt-auto-video',JSON.stringify(log));
-      }
       report('Đang viết kịch bản: '+candidate.title);
       loadButton.click();
       const apply=await until(()=>{
@@ -366,6 +368,9 @@
       report('Đang dựng video: '+candidate.title);
       renderButton.click();
       await until(()=>document.querySelector('[aria-label="Video đã hoàn thành"]'),900000,'Chưa thấy kết quả video.',document.querySelector('.work-grid'));
+      const updated=new Set(readLog().urls);
+      for(const key of candidate.keys||[articleKey(candidate.url)])updated.add(key);
+      localStorage.setItem('qbt-auto-video',JSON.stringify({urls:[...updated]}));
       report('Video đã sẵn sàng: '+candidate.title+'. Bấm Lưu video để lưu.');
     } catch(error){report(error.message);}
     finally{running=false;}
@@ -373,7 +378,7 @@
   makeVideoAuto.onchange=()=>{
     epoch++;
     if(!makeVideoAuto.checked){report('Đã tắt tự động. Tác vụ đã bắt đầu có thể vẫn hoàn tất.');return;}
-    if(!confirm('Bật tự làm video? App sẽ chọn bài từ 75 điểm, dùng API có thể tính phí, thêm ảnh Google và dựng tối đa 3 lượt/ngày. Mỗi lần bắt đầu sẽ bỏ nội dung dự án đang mở. Hãy lưu dự án trước khi bật.')){
+    if(!confirm('Bật tự làm video? App sẽ chọn bài từ 75 điểm, dùng API có thể tính phí, thêm ảnh Google và dựng video cho bài chưa làm. Mỗi lần bắt đầu sẽ bỏ nội dung dự án đang mở. Hãy lưu dự án trước khi bật.')){
       makeVideoAuto.checked=false;return;
     }
     report('Đã bật tự động. Đang quét tin…');
