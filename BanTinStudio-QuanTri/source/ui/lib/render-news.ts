@@ -51,7 +51,7 @@ export function drawFrame(canvas:HTMLCanvasElement,time:number,data:RenderData){
    if(appearance.templateDate?.enabled)drawStyledText(c,appearance.templateDate.text||new Date().toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}),appearance.templateDate.style,W,H);
    c.restore();
   }
-  c.save();c.scale(canvas.width/W,canvas.height/H);drawCaptions(c,appearance,time,W,H);c.restore();
+  if(!(showFooter&&(appearance.footer||appearance.footerGradient||specific)&&appearance.titleEnabled&&appearance.title.trim()&&introAlpha(time,appearance.introDuration)>0)){c.save();c.scale(canvas.width/W,canvas.height/H);drawCaptions(c,appearance,time,W,H);c.restore();}
   return;
  }
  const narrationTime=time;
@@ -74,6 +74,7 @@ export function drawFrame(canvas:HTMLCanvasElement,time:number,data:RenderData){
  drawStyledText(c,data.title||'Mỗi câu chuyện. Một góc nhìn mới.',s,W,H);c.restore();}
  if(data.templateSource?.enabled&&data.templateSource.text)drawStyledText(c,data.templateSource.text,data.templateSource.style,W,H);
  if(data.templateDate?.enabled)drawStyledText(c,data.templateDate.text||new Date().toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}),data.templateDate.style,W,H);
+ if(data.titleEnabled&&intro>0){c.restore();return;}
  if(data.captions&&!data.cues&&pos){const words=pos.scene.text.split(/\s+/),chunks=Math.ceil(words.length/9),chunk=Math.min(Math.floor(pos.progress*chunks),chunks-1);drawStyledText(c,words.slice(chunk*9,chunk*9+9).join(' '),styles.caption,W,H);}else drawCaptions(c,data,narrationTime,W,H);
  c.restore();
 }
