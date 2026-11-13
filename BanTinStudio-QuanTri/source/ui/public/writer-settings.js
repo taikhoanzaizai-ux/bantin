@@ -44,7 +44,7 @@
     const link=document.getElementById('article-url')?.value.trim() || '';
     const source=[...document.querySelectorAll('.article-importer textarea')].find(el=>el.getAttribute('aria-label')==='Nội dung nguồn dán bổ sung')?.value.trim() || '';
     if(!link&&!source){message.textContent='Hãy nhập link hoặc dán nội dung bài trong mục Kịch bản trước.';return;}
-    const prompt=['Viết kịch bản bản tin tiếng Việt khoảng 1 phút từ nguồn dưới đây. Cho tôi tiêu đề, câu mở đầu thu hút và lời đọc. Chỉ dùng dữ kiện kiểm chứng được. Nếu không đọc được bài, hãy yêu cầu tôi dán nội dung.',link,source].filter(Boolean).join('\n\n');
+    const prompt=['Viết kịch bản bản tin tiếng Việt khoảng 1 phút từ nguồn dưới đây. Cho tôi tiêu đề, câu mở đầu thu hút và lời đọc. Chỉ dùng dữ kiện kiểm chứng được. Nếu không đọc được bài, hãy yêu cầu tôi dán nội dung.',instruction.value.trim(),link,source].filter(Boolean).join('\n\n');
     try{await navigator.clipboard.writeText(prompt);message.textContent='Đã sao chép. Mở ChatGPT, dán yêu cầu rồi đưa lời đọc về ô Kịch bản.';}
     catch{message.textContent='Không sao chép được. Bạn có thể mở ChatGPT và dán link bài trực tiếp.';}
   };
@@ -111,8 +111,25 @@
   dialog.addEventListener('close',()=>{key.value='';});
   function mount(){
     const importer=document.querySelector('.article-importer');
-    if(importer&&button.parentElement!==importer) importer.prepend(button);
+    if(importer&&button.parentElement!==importer) importer.prepend(button,instructionField);
   }
+  const instruction=make('textarea');
+  instruction.rows=3;
+  instruction.maxLength=2000;
+  instruction.placeholder='Ví dụ: Viết thường, mở đầu bằng câu hỏi, lời đọc khoảng 1 phút.';
+  instruction.setAttribute('aria-label','Yêu cầu viết kịch bản');
+  const instructionField=field('Yêu cầu viết kịch bản · dùng khi viết bằng AI',instruction);
+  const originalFetch=window.fetch.bind(window);
+  window.fetch=(resource,options)=>{
+    if(typeof resource==='string' && resource==='/_desktop/article/draft' &&
+       typeof options?.body==='string' && instruction.value.trim()){
+      const payload=JSON.parse(options.body);
+      if(payload.engine==='ai'){
+        options={...options,body:JSON.stringify({...payload,writing_instruction:instruction.value.trim()})};
+      }
+    }
+    return originalFetch(resource,options);
+  };
   new MutationObserver(mount).observe(document.getElementById('root'),{childList:true,subtree:true});
   mount();
 })();
