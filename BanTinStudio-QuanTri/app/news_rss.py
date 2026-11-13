@@ -73,12 +73,19 @@ FEEDS_BY_COUNTRY = {
     "Mỹ": [
         ("ABC News", "Tin chung", "https://abcnews.go.com/abcnews/usheadlines"),
         ("NPR", "Tin chung", "https://feeds.npr.org/1001/rss.xml"),
+        ("The New York Times", "Tin chung", "https://rss.nytimes.com/services/xml/rss/nyt/US.xml"),
+        ("ABC News", "Tin chung", "https://abcnews.go.com/abcnews/topstories"),
     ],
     "Hàn Quốc": [
         ("Yonhap", "Tin chung", "https://en.yna.co.kr/RSS/national.xml"),
+        ("The Korea Times", "Tin chung", "https://feed.koreatimes.co.kr/k/southkorea.xml"),
+        ("The Korea Times", "Giải trí", "https://feed.koreatimes.co.kr/k/entertainment.xml"),
+        ("The Korea Times", "Thể thao", "https://feed.koreatimes.co.kr/k/sports.xml"),
     ],
     "Nhật Bản": [
         ("NHK World", "Tin chung", "https://www3.nhk.or.jp/nhkworld/en/news/rss/all.xml"),
+        ("The Japan Times", "Tin chung", "https://www.japantimes.co.jp/feed/topstories/"),
+        ("NHK", "Tin chung", "https://www3.nhk.or.jp/rss/news/cat0.xml"),
     ],
 }
 TOPICS = ("Tất cả", "Thời sự", "Đời sống", "Pháp luật", "Thể thao", "Giải trí", "Tin chung")
