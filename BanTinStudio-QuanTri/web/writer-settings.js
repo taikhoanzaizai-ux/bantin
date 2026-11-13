@@ -111,14 +111,19 @@
   dialog.addEventListener('close',()=>{key.value='';});
   function mount(){
     const importer=document.querySelector('.article-importer');
-    if(importer&&button.parentElement!==importer) importer.prepend(button,instructionField);
+    if(!importer)return;
+    if(button.parentElement!==importer)importer.prepend(button);
+    const linkField=importer.querySelector('label[for="article-url"]');
+    if(linkField && linkField.nextElementSibling!==instructionField)linkField.after(instructionField);
   }
   const instruction=make('textarea');
   instruction.rows=3;
+  instruction.style.cssText='display:block;width:100%;min-height:90px;padding:10px;border:1px solid #b9cbd9;border-radius:8px;background:#fff;color:#152832';
   instruction.maxLength=2000;
   instruction.placeholder='Ví dụ: Viết thường, mở đầu bằng câu hỏi, lời đọc khoảng 1 phút.';
   instruction.setAttribute('aria-label','Yêu cầu viết kịch bản');
   const instructionField=field('Yêu cầu viết kịch bản · dùng khi viết bằng AI',instruction);
+  instructionField.style.cssText='display:block;margin:12px 0;font-weight:600';
   const originalFetch=window.fetch.bind(window);
   window.fetch=(resource,options)=>{
     if(typeof resource==='string' && resource==='/_desktop/article/draft' &&
