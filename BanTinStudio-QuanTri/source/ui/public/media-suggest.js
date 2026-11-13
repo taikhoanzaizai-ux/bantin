@@ -21,8 +21,6 @@
   keyword.placeholder = 'Tên người, đội, địa điểm hoặc sự kiện';
   keyword.setAttribute('aria-label','Từ khóa tư liệu');
   keyword.style.cssText = 'flex:1;min-width:160px';
-  const search = make('button','Tìm trên Wikimedia Commons');
-  search.className = 'button primary';
   const tools = make('div');
   tools.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:12px 0';
   const google = make('button','Google Hình ảnh');
@@ -39,13 +37,7 @@
   updateSelection();
   google.onclick = () => find('google');
   addSelected.onclick = insert;
-  const kind = make('select');
-  kind.setAttribute('aria-label','Loại tư liệu');
-  for(const [value,label] of [['image','Ảnh'],['video','Video']]){
-    const option = make('option',label); option.value=value; kind.append(option);
-  }
-  kind.onchange = () => { google.hidden = kind.value === 'video'; results.replaceChildren(); selected.clear(); updateSelection(); };
-  tools.append(keyword,kind,search,google,addSelected);
+  tools.append(keyword,google,addSelected);
   const status = make('p');
   status.setAttribute('role','status');
   const results = make('div');
@@ -78,7 +70,7 @@
     results.replaceChildren();
     selected.clear();
     updateSelection();
-    status.textContent = 'Tìm ảnh theo từ khóa chung cho cả bài. Google Hình ảnh và Wikimedia Commons mở kết quả tại đây.';
+    status.textContent = 'Tìm ảnh theo từ khóa chung cho cả bài. Kết quả Google Hình ảnh hiển thị tại đây.';
     dialog.showModal();
   };
   async function insert() {
@@ -88,7 +80,7 @@
     const transfer = new DataTransfer();
     const failed = [];
     addSelected.disabled = true;
-    search.disabled = google.disabled = true;
+    google.disabled = true;
     try {
       for (const item of items) {
         if (!dialog.open) return;
@@ -112,13 +104,13 @@
     } finally {
       selected.clear();
       results.querySelectorAll('input[type=checkbox]').forEach(box => {box.checked = false;});
-      search.disabled = google.disabled = false;
+      google.disabled = false;
       updateSelection();
     }
   }
-  async function find(provider = 'commons') {
-    if (!keyword.value.trim() || search.disabled) return;
-    search.disabled = google.disabled = true;
+  async function find(provider = 'google') {
+    if (!keyword.value.trim() || google.disabled) return;
+    google.disabled = true;
     results.replaceChildren();
     selected.clear();
     updateSelection();
@@ -133,8 +125,6 @@
           method:'POST',headers:{'Content-Type':'application/json','X-Studio-CSRF':info.csrf},
           body:JSON.stringify({q:keyword.value.trim()})
         });
-      } else {
-        response = await fetch('/_desktop/media-suggest?' + new URLSearchParams({q:keyword.value.trim(),kind:kind.value}));
       }
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.message);
@@ -168,9 +158,8 @@
         results.append(card);
       }
     } catch (error) { status.textContent = error.message; }
-    finally { search.disabled = google.disabled = false; }
+    finally { google.disabled = false; }
   }
-  search.onclick = () => find('commons');
   keyword.onkeydown = event => { if (event.key === 'Enter') {event.preventDefault();find();} };
   function mount() {
     const drop = document.querySelector('.editor-content .dropzone');
