@@ -1,4 +1,3 @@
-import io
 """Public article text/images and grounded news scripts; stdlib-only portable backend."""
 from __future__ import annotations
 import collections,concurrent.futures,hashlib,html,http.client,io,ipaddress,json,re,secrets,socket,ssl,threading,time,urllib.parse,zipfile,zlib
