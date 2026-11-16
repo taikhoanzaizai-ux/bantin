@@ -302,6 +302,7 @@
       if(!configResponse.ok||!config.has_key)throw Error('Hãy lưu khóa API trong Thiết lập API / model.');
       }
       if(!queued){
+        if(window.qbtVideoQueue?.active()||window.qbtVideoQueue?.hasResults()){report('Đang giữ video dựng nền. Hãy lưu và bỏ video trong danh sách trước khi chạy tự động.');return;}
         sessionStorage.setItem('qbt-auto-next',JSON.stringify({candidate,engine,manual:!!manual,enabled:makeVideoAuto.checked,country:country.value,topic:topic.value}));
         localStorage.removeItem('news-draft');
         location.reload();
