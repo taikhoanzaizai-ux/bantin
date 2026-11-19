@@ -56,3 +56,5 @@ Native Windows app/browser codec/model synthesis is not tested in this environme
 The top typography/channel inspector also follows the selected preview template.
 normalizeBatchUpdate retains unchanged WAV/font payloads during pointer/keyboard edits; aggregate limits run only on payload changes/import.
 Auto batch transitions use fade/wipe to avoid a fast full-frame slide.
+
+1.13.40: Anh & video supports one rectangular timed blur per media asset. Drag in source coordinates; start/end are seconds from the beginning of each scene using the asset. Preview and export call the same blur function before layout/motion. Project media retains blurRegion. Intro clips do not use this effect. Verified JS syntax, time boundaries, rectangle coordinate mapping with a mock canvas. Real Windows rendering and MP4 output remain unverified.
